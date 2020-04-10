@@ -8,3 +8,6 @@
 *.so
 *.map
 build/
+.gdb_history
+tags
+core

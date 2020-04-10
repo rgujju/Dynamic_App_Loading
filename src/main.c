@@ -6,11 +6,14 @@
 
 #include "stm32f4xx_hal.h"
 
+#include "syscall.h"
+
 void SystemClock_Config(void);
 
 static GPIO_InitTypeDef  GPIO_InitStruct;
 
 #define LED1_PIN GPIO_PIN_13
+#define LED2_PIN GPIO_PIN_14
 #define LED1_PORT GPIOG
 
 static void LedBlinky_Task(void *pvParameters){
@@ -37,21 +40,25 @@ int main ( void )
 
 	__HAL_RCC_GPIOG_CLK_ENABLE();
 	
-	GPIO_InitStruct.Pin   = LED1_PIN;
+	GPIO_InitStruct.Pin   = LED1_PIN | LED2_PIN;
 	GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull  = GPIO_PULLUP;
 	GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
 
 	HAL_GPIO_Init(LED1_PORT, &GPIO_InitStruct);
+    
+    void* app = 0x08010000;
 
-	xTaskCreate( LedBlinky_Task,						/* The function that implements the task. */
-				"LedBlinky", 							/* The text name assigned to the task - for debug only as it is not used by the kernel. */
-				configMINIMAL_STACK_SIZE, 				/* The size of the stack to allocate to the task. */
-				NULL, 									/* The parameter passed to the task - just to check the functionality. */
-				3, 										/* The priority assigned to the task. */
-				NULL );									/* The task handle is not required, so NULL is passed. */
+//	xTaskCreate( LedBlinky_Task,						/* The function that implements the task. */
+//				"LedBlinky", 							/* The text name assigned to the task - for debug only as it is not used by the kernel. */
+//				configMINIMAL_STACK_SIZE, 				/* The size of the stack to allocate to the task. */
+//				NULL, 									/* The parameter passed to the task - just to check the functionality. */
+//				3, 										/* The priority assigned to the task. */
+//				NULL );									/* The task handle is not required, so NULL is passed. */
 
-	vTaskStartScheduler();
+    uint8_t led_ret = set_led(LED2, GPIO_PIN_SET);
+	printf("Return value of set_led = %d\n",led_ret);
+    vTaskStartScheduler();
 
 	while (1)
 	{
