@@ -56,7 +56,7 @@ int main ( void )
 //				3, 										/* The priority assigned to the task. */
 //				NULL );									/* The task handle is not required, so NULL is passed. */
 
-    uint8_t led_ret = set_led(LED2, GPIO_PIN_SET);
+    uint8_t led_ret = set_led(LED1, GPIO_PIN_SET);
 	printf("Return value of set_led = %d\n",led_ret);
     vTaskStartScheduler();
 

@@ -76,14 +76,14 @@ uint8_t set_led_2(uint8_t Led_Num, uint8_t Led_State){
 #ifdef KERNEL
     // The actual code of the function is here.
     // the macro is controlled from the Makefile targets
-    //switch(Led_Num){
-    //    case 1:
-    //        HAL_GPIO_WritePin(GPIOG, GPIO_PIN_13, Led_State);
-    //        break;
-    //    case 2:
+    switch(Led_Num){
+        case 1:
+            HAL_GPIO_WritePin(GPIOG, GPIO_PIN_13, Led_State);
+            break;
+        case 2:
             HAL_GPIO_WritePin(GPIOG, GPIO_PIN_14, Led_State);
-    //        break;
-    //}
+            break;
+    }
     
     return 7;
     
