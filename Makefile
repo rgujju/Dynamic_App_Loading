@@ -236,7 +236,7 @@ apps/blinky.app:
 	@ echo "Building App $@"
 	$(CC) $(CFLAGS) -I ./include -c apps/blinky/main.c -o apps/blinky/main.o
 	$(CC) $(CFLAGS) -T ./app_base.ld -Wl,--gc-sections --specs=nosys.specs -nostdlib apps/blinky/main.o $(BUILD_DIR)/$(TARGET_DIR)/lib$(TARGET).a -o apps/blinky/blinky.elf 
-	@ $(OD) -Dz --source apps/blinky/blinky.elf > apps/blinky/blinky.diss
+	$(OD) -Dz --source apps/blinky/blinky.elf > apps/blinky/blinky.diss
 
 $(BUILD_DIR):
 	@ $(MKDIR) $@/$(TARGET_DIR)

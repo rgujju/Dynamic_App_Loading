@@ -1,8 +1,10 @@
 
 MEMORY
 {
-    RAM (xrw)      : ORIGIN = 0x20000000, LENGTH = 192K
+    /*RAM (xrw)      : ORIGIN = 0x20000000, LENGTH = 192K
     CCMRAM (rw)      : ORIGIN = 0x10000000, LENGTH = 64K
+    FLASH (rx)      : ORIGIN = 0x08010000, LENGTH = 2048K*/
+    /*RGREMOVE*/
     FLASH (rx)      : ORIGIN = 0x08010000, LENGTH = 2048K
 }
 
@@ -91,7 +93,7 @@ SECTIONS
         app_sdata = .;
         *(.data*)
         . = ALIGN(4);
-    } >RAM AT> FLASH /* Mentioning RAM here, specifies the VMA ie virtual memory address ie address during execution */
+    } >FLASH /* Mentioning RAM here, specifies the VMA ie virtual memory address ie address during execution */
     /* The AT defines the load address of the .data section. This is where the section will be loaded */
 
     /* _sidata will be the location .data section will be stored
@@ -109,7 +111,7 @@ SECTIONS
         . = ALIGN(4);
         app_sgot = .;
         *(.got)
-    } >RAM AT> FLASH
+    } > FLASH
     
     /* got.plt section contains entries which is used with the PLT to access the functions 
      * in a position independent manner. */
@@ -118,7 +120,7 @@ SECTIONS
         . = ALIGN(4);
         *(.got.plt)
         app_edata = .;
-    } >RAM AT> FLASH
+    } > FLASH
     
     /* The 'bss' section is similar to the 'data' section,
     *  but its space is initialized to all 0s at the
@@ -140,7 +142,7 @@ SECTIONS
         app_ebss = .;
         app__bss_end__ = app_ebss;
 
-    } >RAM
+    } >FLASH
     
     /* Remove information from the standard libraries */
     /DISCARD/ :
