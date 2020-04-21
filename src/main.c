@@ -1,3 +1,41 @@
+/**
+ ******************************************************************************
+ * @file    main.c
+ * @brief   Example main file
+ *          contains the main code for blinking an LED
+ @verbatim
+  ==============================================================================
+                       ##### Title of the project  #####
+  ==============================================================================
+
+ @endverbatim
+ ******************************************************************************
+ * @attention
+ * 
+ * LICENSE
+ * 
+ * The MIT License (MIT)
+ * 
+ * Copyright (c) 2020 Rohit Gujarathi
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+*/
 
 #include "utilities.h"
 #include "FreeRTOS.h"
@@ -12,11 +50,24 @@ void SystemClock_Config(void);
 
 static GPIO_InitTypeDef  GPIO_InitStruct;
 
+/** @brief   LED1 pin */
 #define LED1_PIN GPIO_PIN_13
-#define LED2_PIN GPIO_PIN_14
+/** @brief   LED1 port */
 #define LED1_PORT GPIOG
+/** @brief   LED2 pin */
+#define LED2_PIN GPIO_PIN_14
+/** @brief   LED2 port */
+#define LED2_PORT GPIOG
 
-static void LedBlinky_Task(void *pvParameters) {
+
+/**
+* @brief    Task for blinking an LED every second
+* 
+* @param    pvParameters void pointer to task parameters
+* 
+* @retval   void
+*/
+void LedBlinky_Task(void *pvParameters) {
     while (1) {
         HAL_GPIO_TogglePin(LED1_PORT, LED1_PIN);
         vTaskDelay(1000/portTICK_PERIOD_MS);
@@ -24,7 +75,7 @@ static void LedBlinky_Task(void *pvParameters) {
 }
 
 int main ( void ) {
-#if ENABLE_SEMIHOSTING
+#if SEMIHOSTING9
     initialise_monitor_handles();
     setbuf(stdout, NULL);
     //~ setvbuf(stdout, NULL, _IONBF, 0);
@@ -38,6 +89,7 @@ int main ( void ) {
     GPIO_InitStruct.Pull  = GPIO_PULLUP;
     GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
     HAL_GPIO_Init(LED1_PORT, &GPIO_InitStruct);
+
     //void* app = 0x08010000;
     int (*app_main)() = 0x08010001;
     app_main();
@@ -55,6 +107,13 @@ int main ( void ) {
     return 0;
 }
 
+/**
+* @brief    Setup the system clock
+* 
+* @note     This function is taken from STM32CubeMX
+* 
+* @retval   void
+*/
 void SystemClock_Config(void) {
     RCC_OscInitTypeDef RCC_OscInitStruct = {0};
     RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
@@ -62,8 +121,8 @@ void SystemClock_Config(void) {
     */
     __HAL_RCC_PWR_CLK_ENABLE();
     __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE3);
-    /** Initializes the CPU, AHB and APB busses clocks
-    */
+    
+    /** Initializes the CPU, AHB and APB busses clocks */
     RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
     RCC_OscInitStruct.HSEState = RCC_HSE_ON;
     RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
@@ -75,7 +134,8 @@ void SystemClock_Config(void) {
     if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
         Error_Handler();
     }
-    /* Initializes the CPU, AHB and APB busses clocks */
+    
+    /** Initializes the CPU, AHB and APB busses clocks */
     RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                                   |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
     RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
