@@ -388,8 +388,11 @@ if(TARGET_GROUP STREQUAL kernel)
         configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
         message("Doxygen build started")
 
+        # Generate doxygen documentation
+        # And copy to docs folder on project root so github pages can display docs
         add_custom_target(docs
             COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
+            COMMAND ${CMAKE_COMMAND} -E copy_directory html ${PROJECT_SOURCE_DIR}/docs
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
             COMMENT "Generating API documentation with Doxygen"
             VERBATIM
