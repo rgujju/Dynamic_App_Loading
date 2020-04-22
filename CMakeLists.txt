@@ -52,9 +52,9 @@ mark_as_advanced(VERSION_MAJOR VERSION_MINOR VERSION_PATCH)
 #------------------
 # Modules Setup
 #------------------
-set(MODULES_USED
+list(APPEND MODULES_USED
     simple_module
-    )
+    sys_module)
 #-------------------
 # MCU Setup
 #-------------------
@@ -79,7 +79,7 @@ set(SYSTEM_FILE  ${MCU_DIR}/Source/Templates/system_stm32f4xx.c)
 set(HSE_VAL 8000000)
 
 # Define the linker script location
-set(LINKER_SCRIPT linker.ld)
+set(KERNEL_LINKER_SCRIPT linker.ld)
 
 #-------------------
 # HAL Setup
@@ -200,25 +200,6 @@ if(CMAKE_CROSSCOMPILING STREQUAL "1")
     ${OBJECT_GEN_FLAGS} \
     ")
 
-    find_file(LINKER_SCRIPT_PATH
-        NAMES "${LINKER_SCRIPT}"
-        PATHS
-        ${CMAKE_CURRENT_LIST_DIR}
-        )
-
-    if(DEFINED LINKER_SCRIPT_PATH)
-        message(STATUS "[INFO] Using linker file at ${LINKER_SCRIPT_PATH}")
-        string(APPEND CMAKE_EXE_LINKER_FLAGS "-T${LINKER_SCRIPT_PATH} ")
-    else()
-        message(FATAL_ERROR "[ERRR] Could not find linker script ${LINKER_SCRIPT}")
-    endif()
-
-    if("${SEMIHOSTING}" STREQUAL "1")
-        string(APPEND CMAKE_EXE_LINKER_FLAGS "--specs=rdimon.specs -lc -lrdimon ")
-    else()
-        string(APPEND CMAKE_EXE_LINKER_FLAGS "--specs=nosys.specs ")
-    endif()
-
 else()
     # Flags and options to set while compiling natively
     message(STATUS "[INFO] Compiling natively")
@@ -253,14 +234,51 @@ else()
 
 endif()
 
-add_subdirectory(modules)
+# Build the kernel
+if(TARGET_GROUP STREQUAL kernel)
 
-# Actual build which will go onto the board
-if(TARGET_GROUP STREQUAL production)
+    set(KERNEL 1)
+
+    set(LINKER_SCRIPT "${KERNEL_LINKER_SCRIPT}")
+    find_file(LINKER_SCRIPT_PATH
+        NAMES "${LINKER_SCRIPT}"
+        PATHS
+        ${CMAKE_CURRENT_LIST_DIR}
+        )
+
+    if(DEFINED LINKER_SCRIPT_PATH)
+        message(STATUS "[INFO] Using linker file at ${LINKER_SCRIPT_PATH}")
+        string(APPEND CMAKE_EXE_LINKER_FLAGS "-T${LINKER_SCRIPT_PATH} ")
+    else()
+        message(FATAL_ERROR "[ERRR] Could not find linker script ${LINKER_SCRIPT}")
+    endif()
+
+    if("${SEMIHOSTING}" STREQUAL "1")
+        string(APPEND CMAKE_EXE_LINKER_FLAGS "--specs=rdimon.specs -lc -lrdimon ")
+    else()
+        string(APPEND CMAKE_EXE_LINKER_FLAGS "--specs=nosys.specs ")
+    endif()
+
+    #-------------------
+    # Common macros for kernel and its modules
+    #-------------------
+    set(MODULE_COMPILE_DEFS
+        ${MCU}
+        HSE_VALUE=${HSE_VAL}
+        SEMIHOSTING=${SEMIHOSTING}
+        USE_HAL_DRIVER=1
+        KERNEL=${KERNEL}
+        )
+    set(MODULE_LINK_LIBS
+        rtos
+        hal
+        )
+    add_subdirectory(modules)
+
 
     ######################################################################
     # @Target: ${PROJECT_NAME}.elf
-    # @Brief: Build the actual elf file of the project
+    # @Brief: Build the kernel for the project
     ######################################################################
 
     #-------------------
@@ -320,6 +338,7 @@ if(TARGET_GROUP STREQUAL production)
     add_executable(${PROJECT_NAME}.elf
         ${SOURCES}
         )
+    objdump(${PROJECT_NAME}.elf)
     target_include_directories(${PROJECT_NAME}.elf
         PUBLIC
         ${PROJECT_SOURCE_DIR}/include
@@ -328,29 +347,24 @@ if(TARGET_GROUP STREQUAL production)
         PUBLIC
         rtos
         hal
-        ${MODULES_USED}
+        "${MODULES_USED}"
         )
     target_compile_definitions(${PROJECT_NAME}.elf
         PUBLIC
-        ${MCU}
-        HSE_VALUE=${HSE_VAL}
-        SEMIHOSTING=${SEMIHOSTING}
+        ${PUBLIC_COMPILE_DEFS}
         )
 
     ######################################################################
-    # @Target: flash
+    # @Target: flash_gdb
     # @Brief: flash the release/debug elf using gdb
     ######################################################################
-    add_custom_target(flash DEPENDS ${PROJECT_NAME}.elf)
-    add_custom_command(TARGET flash
-        #COMMAND bash "-c" "pgrep -x \"openocd\" || (echo \"Please start openocd\" && exit -1)"
-        COMMAND echo "Starting GDB client and loading ${PROJECT_NAME}.elf dashboard to $(GDB_TTY)"
-        COMMAND ${CMAKE_C_GDB} ${PROJECT_NAME}.elf
-        -ex "target extended :3333"
-        -ex "dashboard -output $(GDB_TTY)"
-        -ex "load ${PROJECT_NAME}.elf"
-        -ex "monitor arm semihosting enable"
-        )
+    flash_gdb(${PROJECT_NAME}.elf)
+
+    ######################################################################
+    # @Target: gdb
+    # @Brief: Start gdb client
+    ######################################################################
+    gdb()
 
     ######################################################################
     # @Target: doc
@@ -374,12 +388,12 @@ if(TARGET_GROUP STREQUAL production)
         configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
         message("Doxygen build started")
 
-        # note the option ALL which allows to build the docs together with the application
-        add_custom_target(docs ALL
+        add_custom_target(docs
             COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
             COMMENT "Generating API documentation with Doxygen"
-            VERBATIM )
+            VERBATIM
+            )
     else (DOXYGEN_FOUND)
         message("Doxygen need to be installed to generate the doxygen documentation")
     endif (DOXYGEN_FOUND)
@@ -389,6 +403,24 @@ if(TARGET_GROUP STREQUAL production)
         "${PROJECT_NAME}.map"
         "${CMAKE_CURRENT_BINARY_DIR}/html"
         "${CMAKE_CURRENT_BINARY_DIR}/latex"
+        )
+
+
+elseif(TARGET_GROUP STREQUAL userlib)
+
+    message(STATUS "[INFO] Building userlib target group")
+    set(MODULE_COMPILE_DEFS
+        ${MCU}
+        HSE_VALUE=${HSE_VAL}
+        )
+    # Build sys_module without -DKERNEL
+    add_subdirectory(modules/sys_module)
+    # copy the sys_module lib and header files to lib folder for easy distribution
+    add_custom_target(userlib ALL DEPENDS sys_module)
+    add_custom_command(TARGET userlib
+        COMMAND ${CMAKE_COMMAND} -E make_directory lib
+        COMMAND ${CMAKE_COMMAND} -E copy modules/sys_module/libsys_module.a lib
+        COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/modules/sys_module/*.h lib
         )
 
 elseif(TARGET_GROUP STREQUAL test)

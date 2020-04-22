@@ -123,9 +123,10 @@ LoopFillZerobss:
 */
     .section  .text.Default_Handler,"ax",%progbits
 Default_Handler:
-Infinite_Loop:
-  b  Infinite_Loop
-  .size  Default_Handler, .-Default_Handler
+//Infinite_Loop: // RGCHANGE: Commented line
+//  b  Infinite_Loop // RGCHANGE: Commented line
+    b  FaultHandler  // RGCHANGE: Added line
+.size  Default_Handler, .-Default_Handler
 /******************************************************************************
 *
 * The minimal vector table for a Cortex M3. Note that the proper constructs

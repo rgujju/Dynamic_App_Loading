@@ -11,3 +11,4 @@ build/
 .gdb_history
 tags
 core
+apps/build

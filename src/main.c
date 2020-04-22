@@ -1,33 +1,33 @@
 /**
  ******************************************************************************
  * @file    main.c
- * @brief   Example main file
+ * @brief   Main file
  *          contains the main code for blinking an LED
  @verbatim
   ==============================================================================
-                       ##### Title of the project  #####
+                    ##### Dynamic Loading of apps  #####
   ==============================================================================
 
  @endverbatim
  ******************************************************************************
  * @attention
- * 
+ *
  * LICENSE
- * 
+ *
  * The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2020 Rohit Gujarathi
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -62,9 +62,9 @@ static GPIO_InitTypeDef  GPIO_InitStruct;
 
 /**
 * @brief    Task for blinking an LED every second
-* 
+*
 * @param    pvParameters void pointer to task parameters
-* 
+*
 * @retval   void
 */
 void LedBlinky_Task(void *pvParameters) {
@@ -75,12 +75,14 @@ void LedBlinky_Task(void *pvParameters) {
 }
 
 int main ( void ) {
-#if SEMIHOSTING9
+
+#if SEMIHOSTING
     initialise_monitor_handles();
     setbuf(stdout, NULL);
     //~ setvbuf(stdout, NULL, _IONBF, 0);
     INFO("Main program start");
 #endif
+
     HAL_Init();
     SystemClock_Config();
     __HAL_RCC_GPIOG_CLK_ENABLE();
@@ -89,9 +91,8 @@ int main ( void ) {
     GPIO_InitStruct.Pull  = GPIO_PULLUP;
     GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
     HAL_GPIO_Init(LED1_PORT, &GPIO_InitStruct);
-
-    //void* app = 0x08010000;
-    int (*app_main)() = 0x08010001;
+    //void* app = 0x08010001;
+    int (*app_main)() = (void*)0x08010001;
     app_main();
     //	xTaskCreate( LedBlinky_Task,						/* The function that implements the task. */
     //				"LedBlinky", 							/* The text name assigned to the task - for debug only as it is not used by the kernel. */
@@ -99,8 +100,8 @@ int main ( void ) {
     //				NULL, 									/* The parameter passed to the task - just to check the functionality. */
     //				3, 										/* The priority assigned to the task. */
     //				NULL );									/* The task handle is not required, so NULL is passed. */
-    uint8_t led_ret = sys.set_led(LED2, GPIO_PIN_SET);
-    printf("Return value of set_led = %d\n", led_ret);
+    uint8_t led_ret = sys.set_led(LED2, LED_ON);
+    DBUG("Return value of set_led = %d", led_ret);
     vTaskStartScheduler();
     while (1) {
     }
@@ -109,9 +110,9 @@ int main ( void ) {
 
 /**
 * @brief    Setup the system clock
-* 
+*
 * @note     This function is taken from STM32CubeMX
-* 
+*
 * @retval   void
 */
 void SystemClock_Config(void) {
@@ -121,7 +122,6 @@ void SystemClock_Config(void) {
     */
     __HAL_RCC_PWR_CLK_ENABLE();
     __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE3);
-    
     /** Initializes the CPU, AHB and APB busses clocks */
     RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
     RCC_OscInitStruct.HSEState = RCC_HSE_ON;
@@ -134,7 +134,6 @@ void SystemClock_Config(void) {
     if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
         Error_Handler();
     }
-    
     /** Initializes the CPU, AHB and APB busses clocks */
     RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                                   |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
