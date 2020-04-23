@@ -91,7 +91,7 @@ int main ( void ) {
     GPIO_InitStruct.Pull  = GPIO_PULLUP;
     GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
     HAL_GPIO_Init(LED1_PORT, &GPIO_InitStruct);
-    //void* app = 0x08010001;
+
     int (*app_main)() = (void*)0x08010001;
     app_main();
     //	xTaskCreate( LedBlinky_Task,						/* The function that implements the task. */
@@ -118,8 +118,7 @@ int main ( void ) {
 void SystemClock_Config(void) {
     RCC_OscInitTypeDef RCC_OscInitStruct = {0};
     RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-    /** Configure the main internal regulator output voltage
-    */
+    /** Configure the main internal regulator output voltage*/
     __HAL_RCC_PWR_CLK_ENABLE();
     __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE3);
     /** Initializes the CPU, AHB and APB busses clocks */
