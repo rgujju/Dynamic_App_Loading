@@ -26,13 +26,13 @@ Create the binary and header file of the app in tiny binary format
 Requires https://github.com/eliben/pyelftools
 
 ## Usage:
-usage: elf2tinf.py [-h] [--major MAJOR] [--minor MINOR] elf_file app_name
-positional arguments:
-  elf_file       Elf file to convert
-  app_name       Name of the app, should be less than 15 characters
+usage: elf2tinf.py [-h] [--major MAJOR] [--minor MINOR] elf_file app_name  
+positional arguments:  
+  elf_file       Elf file to convert  
+  app_name       Name of the app, should be less than 15 characters  
 
-optional arguments:
-  -h, --help     show this help message and exit
-  --major MAJOR  Major version of app. default:1
-  --minor MINOR  Minor version of app. default:0
+optional arguments:  
+  -h, --help     show this help message and exit  
+  --major MAJOR  Major version of app. default:1  
+  --minor MINOR  Minor version of app. default:0  
 
