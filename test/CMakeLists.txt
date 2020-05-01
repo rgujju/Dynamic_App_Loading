@@ -24,8 +24,13 @@
 
 # List of tests and their flags
 # Add new tests like this
-list(APPEND tests_names "test_simple_module")
+list(APPEND tests_names "test_app_loader")
 list(APPEND tests_flags " ")
+list(APPEND tests_inc "${RTOS_DIR}/include ${RTOS_DIR_MCU}")
+
+#list(APPEND tests_names "test_simple_module")
+#list(APPEND tests_flags " ")
+#list(APPEND tests_inc " ")
 
 # Declare all tests targets
 list(LENGTH tests_names count)
@@ -33,23 +38,38 @@ math(EXPR count "${count} - 1")
 foreach(i RANGE ${count})
     list(GET tests_names ${i} test_name)
     list(GET tests_flags ${i} test_flags)
+    list(GET tests_inc ${i} test_inc)
+
+    message(STATUS "[INFO] Adding test '${test_name}' with flags '${test_flags}' and include dirs '${test_inc}'")
     add_executable(${test_name} ${test_name}.c)
-    string(REGEX REPLACE "^test_" "" cut ${test_name})
-    target_link_libraries(${test_name}
-        ${cut}
+
+    string(REGEX REPLACE "^test_" "" mut ${test_name})
+    string(REPLACE " " ";" test_inc "${test_inc}")
+
+target_link_libraries(${test_name}
+        ${mut}
         unity
         )
     target_include_directories(${test_name}
         PRIVATE
         ${PROJECT_SOURCE_DIR}/components/fff
+        ${PROJECT_SOURCE_DIR}/modules/${mut}
+        ${PROJECT_SOURCE_DIR}/include
+        ${test_inc}
         )
+
     if(test_flags STREQUAL " ")
+
     else()
+
         target_link_libraries(${test_name}
             ${test_flags}
             )
+
     endif()
+
     add_test(${test_name} ${test_name})
+
 endforeach()
 
 

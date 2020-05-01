@@ -22,5 +22,33 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-add_subdirectory(sys_module)
-add_subdirectory(app_loader)
+set(MODULE_NAME app_loader)
+set(MODULE_INCLUDE ${RTOS_DIR}/include ${RTOS_DIR_MCU})
+
+file(GLOB SOURCES ./*.c)
+
+add_library(${MODULE_NAME} STATIC
+    ${SOURCES}
+    )
+
+target_include_directories(${MODULE_NAME}
+    PUBLIC
+    ${CMAKE_CURRENT_LIST_DIR}
+    PRIVATE
+    ${PROJECT_SOURCE_DIR}/include
+    ${MODULE_INCLUDE}
+    )
+
+if(MODULE_LINK_LIBS)
+    target_link_libraries(${MODULE_NAME}
+        PRIVATE
+        ${MODULE_LINK_LIBS}
+        )
+endif()
+
+if(MODULE_COMPILE_DEFS)
+    target_compile_definitions(${MODULE_NAME}
+        PRIVATE
+        ${MODULE_COMPILE_DEFS}
+        )
+endif()

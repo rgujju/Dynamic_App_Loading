@@ -1,8 +1,12 @@
 
 #include "syscall.h"
 
+uint8_t led_num = 0x02;
+uint8_t led_status;
 
-int app_main() {
-    sys->set_led(LED1, LED_ON);
+int main() {
+	led_num-=1;
+	led_status=0x01;
+	sys->set_led(led_num, led_status);
     return 0;
 }

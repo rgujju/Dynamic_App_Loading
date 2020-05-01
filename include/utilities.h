@@ -44,8 +44,9 @@
 /** Enable error prints */
 #define ERRR_EN 1
 
-#if SEMIHOSTING
+#if defined(SEMIHOSTING) || defined(__x86_64__)
 extern void initialise_monitor_handles(void);
+// TODO: Handle printf if not semihosting
 /** Print as debug output */
 #define DBUG(fmt...) if(DBUG_EN){printf("[DBUG] " fmt); printf("\n");}
 /** Print as information output */
@@ -84,3 +85,6 @@ typedef struct __attribute__((packed)) context_state_frame {
     uint32_t xpsr;
 
 } sContextStateFrame;
+
+
+#define DUMMY_SYS_ADDR 0xA5A5A5A5

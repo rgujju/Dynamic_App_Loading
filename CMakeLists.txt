@@ -53,8 +53,9 @@ mark_as_advanced(VERSION_MAJOR VERSION_MINOR VERSION_PATCH)
 # Modules Setup
 #------------------
 list(APPEND MODULES_USED
-    simple_module
-    sys_module)
+    sys_module
+    app_loader
+    )
 #-------------------
 # MCU Setup
 #-------------------
@@ -64,14 +65,9 @@ set(MCU_SPEC  cortex-m4)
 set(FLOAT_SPEC "-mfloat-abi=hard -mfpu=fpv4-sp-d16")
 
 # Dont need to change this if MCU is defined correctly
-# Below commands are for fetching the path to the system and startup files
-# If execute_process is not able to locate the files properly
 # then directly set the STARTUP_FILE and SYSTEM_FILE to the required files
-execute_process(COMMAND
-    bash "-c" "echo -n startup_${MCU}.s | awk '{print tolower($0)}'"
-    OUTPUT_VARIABLE STARTUP_FILE_NAME
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
+string(TOLOWER startup_${MCU}.s STARTUP_FILE_NAME)
+
 set(STARTUP_FILE ${MCU_DIR}/Source/Templates/gcc/${STARTUP_FILE_NAME})
 set(SYSTEM_FILE  ${MCU_DIR}/Source/Templates/system_stm32f4xx.c)
 
@@ -95,7 +91,7 @@ set(HAL_DIR components/STM32F4xx_HAL_Driver)
 # RTOS Setup
 #-------------------
 # Path to FreeRTOS Kernel
-set(RTOS_DIR components/FreeRTOS-Kernel)
+set(RTOS_DIR ${PROJECT_SOURCE_DIR}/components/FreeRTOS-Kernel)
 # Modify this to the path where your micrcontroller specific port is
 set(RTOS_DIR_MCU ${RTOS_DIR}/portable/GCC/ARM_CM4F) # For cortex-m4 microcontroller
 set(RTOS_HEAP    ${RTOS_DIR}/portable/MemMang/heap_4.c) # Select which heap implementation to use
@@ -428,6 +424,22 @@ elseif(TARGET_GROUP STREQUAL userlib)
 
 elseif(TARGET_GROUP STREQUAL test)
 
+    #-------------------
+    # Common macros for testing modules
+    #-------------------
+    #set(MODULE_COMPILE_DEFS
+    #    ${MCU}
+    #    HSE_VALUE=${HSE_VAL}
+    #    SEMIHOSTING=${SEMIHOSTING}
+    #    USE_HAL_DRIVER=1
+    #    KERNEL=${KERNEL}
+    #    )
+    #set(MODULE_LINK_LIBS
+    #    rtos
+    #    hal
+    #    )
+    add_subdirectory(modules)
+
     add_library(unity STATIC
         components/unity/unity.c
         )
@@ -445,8 +457,7 @@ elseif(TARGET_GROUP STREQUAL test)
     setup_target_for_coverage_lcov(
         NAME coverage
         EXCLUDE "/usr/include/x86_64-linux-gnu/*" "components/unity/*"
-        EXECUTABLE ctest -V
-        DEPENDENCIES simple_module
+        EXECUTABLE ctest -VV
         )
 else()
     message(FATAL_ERROR "Given TARGET_GROUP unknown")

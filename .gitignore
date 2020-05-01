@@ -12,3 +12,5 @@ build/
 tags
 core
 apps/build
+apps/lib
+*.out

@@ -72,7 +72,8 @@ set(CMAKE_EXE_LINKER_FLAGS " \
 -Wl,--gc-sections \
 --specs=nosys.specs \
 -nostdlib \
- " CACHE INTERNAL "Linker options")
+-Wl,--undefined=main \
+"CACHE INTERNAL "Linker options")
 
 #------------------
 # Debug Flags
@@ -85,10 +86,16 @@ set(CMAKE_EXE_LINKER_FLAGS_DEBUG "" CACHE INTERNAL "Linker options for debug bui
 #------------------
 # Release Flags
 #-----------------
-set(CMAKE_C_FLAGS_RELEASE "-Os -flto " CACHE INTERNAL "C Compiler options for release build type")
-set(CMAKE_CXX_FLAGS_RELEASE "-Os -flto " CACHE INTERNAL "C++ Compiler options for release build type")
+set(CMAKE_C_FLAGS_RELEASE "-Os " CACHE INTERNAL "C Compiler options for release build type")
+set(CMAKE_CXX_FLAGS_RELEASE "-Os " CACHE INTERNAL "C++ Compiler options for release build type")
 set(CMAKE_ASM_FLAGS_RELEASE "" CACHE INTERNAL "ASM Compiler options for release build type")
-set(CMAKE_EXE_LINKER_FLAGS_RELEASE "-flto " CACHE INTERNAL "Linker options for release build type")
+set(CMAKE_EXE_LINKER_FLAGS_RELEASE " " CACHE INTERNAL "Linker options for release build type")
+
+#------------------
+# Position Independent Code Flags
+#------------------
+string(APPEND PIC_FLAGS "-fpic -msingle-pic-base -mpic-register=r9 -mno-pic-data-is-text-relative -mlong-calls")
+#string(APPEND PIC_FLAGS "-fpic -mlong-calls")
 
 if(CMAKE_CROSSCOMPILING STREQUAL "1")
     # Control specific options if crosscompiling
@@ -105,6 +112,7 @@ if(CMAKE_CROSSCOMPILING STREQUAL "1")
     -mthumb-interwork \
     -mabi=aapcs \
     ${FLOAT_SPEC} \
+    ${PIC_FLAGS} \
     ")
 
     #-------------------
@@ -168,6 +176,7 @@ if(CMAKE_CROSSCOMPILING STREQUAL "1")
 
         # Add executable target
         add_executable(${APP_NAME}
+            ${PROJECT_SOURCE_DIR}/app_startup.s
             ${APP_SOURCES}
             )
         # Generate disassembly
