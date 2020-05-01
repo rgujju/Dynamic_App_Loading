@@ -1,14 +1,10 @@
 ### STM32 Dynamic Linking
-
-<br />
-<p align="center">
   <p align="center">
     Minimal example of dynamic apps.
     <br />
     <a href="https://rgujju.github.io/STM32_Dynamic_Apps/html/index.html"><strong>Doxygen docs »</strong></a>
     <br />
   </p>
-</p>
 
 ## About The Project
 This is a minimal example of having dynamic apps with syscall functionality. It is divided into 2 parts, the kernel
