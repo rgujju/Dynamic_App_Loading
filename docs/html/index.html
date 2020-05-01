@@ -83,8 +83,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="contents">
 <div class="textblock"><p><br />
  </p>
-<p>Minimal example of dynamic apps on the STM32. Should be portable to any mcu, atleast the ARMv7-M <br />
- <a href="https://rgujju.github.io/STM32_Dynamic_Apps/html/index.html"><b>Explore the docs »</b></a> <br />
+<p>Minimal example of dynamic apps. <br />
+ <a href="https://rgujju.github.io/STM32_Dynamic_Apps/html/index.html"><b>Doxygen docs »</b></a> <br />
  </p>
 <h2>About The Project</h2>
 <p>This is a minimal example of having dynamic apps with syscall functionality. It is divided into 2 parts, the kernel and the app. The kernel is responsible for loading the app and handling syscall functionality. The syscall functionality is implemented using jumptables. The app can then call APIs present in the kernel through this jump table.</p>
@@ -96,6 +96,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <p>The app is compiled as a Position independent Code. The following flags are used:<code>-fpic -msingle-pic-base -mpic-register=r9 -mno-pic-data-is-text-relative -mlong-calls</code> This creates an executable which can be run from any memory location given that the GOT address is in the register <b>R9</b> gcc generates the executable in elf which contains a lot of information and is quite large for a mcu. So this elf file is converted into <a href="https://github.com/rgujju/STM32_Dynamic_Apps/tree/master/elf2tinf">TINF</a>, which can be easily loaded onto a mcu.</p>
 <p>The app invokes syscalls using the pointer <code><a class="el" href="structsys__struct.html" title="This struct contains APIs for calling system functions It is basically a jump table. Depending on weather the KERNEL is built or the libs for the app, different sys_struct definitions are compiled. For Kernel: The complete struct with each member is compiled For userlib for the app: Only a &#39;const sys_struct* sys&#39; pointer is defined. The address of this pointer is made to point to the actual sys_struct in the kernel at load time in the LoadApp API. ">sys_struct</a> sys</code>. The actual address of the <code><a class="el" href="structsys__struct.html" title="This struct contains APIs for calling system functions It is basically a jump table. Depending on weather the KERNEL is built or the libs for the app, different sys_struct definitions are compiled. For Kernel: The complete struct with each member is compiled For userlib for the app: Only a &#39;const sys_struct* sys&#39; pointer is defined. The address of this pointer is made to point to the actual sys_struct in the kernel at load time in the LoadApp API. ">sys_struct</a> sys</code> is added when the app is loaded. When the app invokes a syscall as follows <code>sys-&gt;SetLed(led_num, led_status);</code> the execution flow jumps into the actual location of the <code>SetLed</code> function which was defined in the kernel.</p>
 <p>To learn more about GOT and PIC refer the <a href="#Acknowledgements">Acknowledgements</a>, they do a much better job of explaining the concepts.</p>
+<h4>Why did I do this?</h4>
+<p>Mainly to learn about the GOT, PIC, memory layout of mcu, and a lot more. Gained a lot of knowledge from this project.</p>
 <h2>Usage</h2>
 <p>This example works on the STM32F429 DISC0 board. But should be portable to any other mcu. </p><h4>1 Build userlib.a. This is a static library aka archive. The app will be linked to this archive.</h4>
 <p><code>mkdir -p build/userlib</code> <code>cd build/userlib</code> <code>cmake ../.. -DTARGET_GROUP=userlib -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=../../cross.cmake</code> <code>make</code> A folder called <b>lib</b> will be created. This folder will contain everything required to build the app. It contains the header files and the userlib.a archive. Copy this folder to the apps folder. <code>cp -R lib ../../apps/</code></p>

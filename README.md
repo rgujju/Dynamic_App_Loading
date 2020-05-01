@@ -3,9 +3,9 @@
 <br />
 <p align="center">
   <p align="center">
-    Minimal example of dynamic apps on the STM32. Should be portable to any mcu, atleast the ARMv7-M
+    Minimal example of dynamic apps.
     <br />
-    <a href="https://rgujju.github.io/STM32_Dynamic_Apps/html/index.html"><strong>Explore the docs »</strong></a>
+    <a href="https://rgujju.github.io/STM32_Dynamic_Apps/html/index.html"><strong>Doxygen docs »</strong></a>
     <br />
   </p>
 </p>
@@ -38,6 +38,10 @@ is loaded. When the app invokes a syscall as follows ``sys->SetLed(led_num, led_
 location of the ``SetLed`` function which was defined in the kernel.
 
 To learn more about GOT and PIC refer the [Acknowledgements](#Acknowledgements), they do a much better job of explaining the concepts.
+
+#### Why did I do this?
+Mainly to learn about the GOT, PIC, memory layout of mcu, and a lot more. 
+Gained a lot of knowledge from this project.
 
 ## Usage
 This example works on the STM32F429 DISC0 board. But should be portable to any other mcu.  
