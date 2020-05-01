@@ -36,7 +36,7 @@
 #ifdef KERNEL
 
 sys_struct sys = {
-    .set_led = set_led,
+    .SetLed = SetLed,
 };
 
 #else

@@ -45,7 +45,7 @@
 /** @brief  Change state of LED to on/off
  * 
  *  @note   This API is compiled only in the KERNEL, not in the userlib
- *          To call this API, from the app. use 'sys->set_led(LED1, LED_ON);' 
+ *          To call this API, from the app. use 'sys->SetLed(LED1, LED_ON);' 
  *
  *  @param  Led_Num Which LED to turn on
  *
@@ -54,4 +54,4 @@
  *  @retval 0 
  *
 */
-uint8_t set_led(uint8_t Led_Num, uint8_t Led_State);
+uint8_t SetLed(uint8_t Led_Num, uint8_t Led_State);

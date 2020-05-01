@@ -48,7 +48,7 @@
                 kernel at load time in the LoadApp API
 */
 typedef struct {
-    uint8_t (*set_led)(uint8_t Led_Num, uint8_t Led_State);
+    uint8_t (*SetLed)(uint8_t Led_Num, uint8_t Led_State);
 }sys_struct;
 
 #ifdef KERNEL

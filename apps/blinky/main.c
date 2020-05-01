@@ -7,6 +7,6 @@ uint8_t led_status;
 int main() {
 	led_num-=1;
 	led_status=0x01;
-	sys->set_led(led_num, led_status);
+	sys->SetLed(led_num, led_status);
     return 0;
 }

@@ -76,8 +76,8 @@ int main ( void ) {
     // Load the app defined in blinky_tinf.h
     LoadApp(app);
 
-    uint8_t led_ret = sys.set_led(LED2, LED_ON);
-    DBUG("Return value of set_led = %d", led_ret);
+    uint8_t led_ret = sys.SetLed(LED2, LED_ON);
+    DBUG("Return value of SetLed = %d", led_ret);
     
     vTaskStartScheduler();
     

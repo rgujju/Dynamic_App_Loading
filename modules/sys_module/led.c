@@ -41,7 +41,7 @@
 
 #include "led.h"
 
-uint8_t set_led(uint8_t Led_Num, uint8_t Led_State) {
+uint8_t SetLed(uint8_t Led_Num, uint8_t Led_State) {
     switch(Led_Num) {
         case 1:
             HAL_GPIO_WritePin(GPIOG, GPIO_PIN_13, Led_State);

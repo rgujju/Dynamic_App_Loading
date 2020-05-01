@@ -87,16 +87,35 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
  <a href="https://rgujju.github.io/STM32_Dynamic_Apps/html/index.html"><b>Explore the docs »</b></a> <br />
  </p>
 <h2>About The Project</h2>
+<p>This is a minimal example of having dynamic apps with syscall functionality. It is divided into 2 parts, the kernel and the app. The kernel is responsible for loading the app and handling syscall functionality. The syscall functionality is implemented using jumptables. The app can then call APIs present in the kernel through this jump table.</p>
+<h4>Kernel</h4>
+<p>At the moment the kernel is nothing but the FreeRTOS code 2 more functions, the <code>SetLed</code> and <code>LoadApp</code> The syscall functionality is implemented in the <b>modules/sys_module</b> while the app loading is implemented in the <b>modules/app_loader</b></p>
+<h4>App</h4>
+<p>The app is compiled as a Position independent Code. The following flags are used:<code>-fpic -msingle-pic-base -mpic-register=r9 -mno-pic-data-is-text-relative -mlong-calls</code> This creates an executable which can be run from any memory location given that the GOT address is in the register <b>R9</b> gcc generates the executable in elf which contains a lot information and is quite large for a mcu. So this elf file is converted into <a href="https://github.com/rgujju/STM32_Dynamic_Apps/tree/master/elf2tinf">TINF</a>, which can be easily loaded onto a mcu.</p>
+<p>To learn more about GOT and PIC refer the <a href="#Acknowledgements">Acknowledgements</a></p>
 <h2>Usage</h2>
-<p>This example works on the STM32F429 DISC0 board. But should be portable to any other mcu.</p><ul>
-<li>First build the userlib.a. This is a static library aka archive. The app will be linked to this archive. <code>mkdir -p build/userlib</code> <code>cd build/userlib</code> <code>cmake ../.. -DTARGET_GROUP=userlib -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=../../cross.cmake</code> <code>make</code> A folder called <b>lib</b> will be created. This folder will contain everything required to build the app. It contains the header files and the userlib.a archive. Copy this folder to the apps folder. <code>cp -R lib ../../apps/</code></li>
-<li>Now build the app. A example app called blinky is provided. This app turn on LED1. There is some extra code in the example to purposely populate the data and bss sections And also to verify if the GOT is copied properly. ie global variable access. <code>cd apps</code> <code>mkdir build/</code> <code>cd build</code> <code>cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=../../cross.cmake</code> <code>make</code> This should have created <b>blinky.elf</b> file. This file now needs to be converted into TINF.</li>
-<li>Create TINF of the app <code>python3 ../../elf2tinf/elf2tinf.py --major 1 --minor 0 blinky.elf blinky</code> This should generate 2 files, the <b>blinky.tinf</b> and <b>blinky_tinf.h</b> <b>blink.tinf</b> is in a binary format which can be loaded over uart, ble, usb, etc. <b>blinky_tinf.h</b> is the same binary data in the form of a header file, so I can test it easily, without implementing the actual transfer of the binary to the mcu. More details about this tool is in the README.md in folder elf2tinf</li>
-<li>Build the kernel <code>mkdir -p build/debug</code> <code>cd build/debug</code> Build the kernel, this is the code that will actually load the app and run it <code>cmake ../.. -DTARGET_GROUP=kernel -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=../../cross.cmake</code> <code>make</code> This will generate the <b>main.elf</b> file which needs to be loaded onto the board.</li>
-<li>Load main.elf This can vary depending on your method. If you use gdb then simply, with something like openocd already running in the background then simply <code>make flash</code></li>
-</ul>
+<p>This example works on the STM32F429 DISC0 board. But should be portable to any other mcu. </p><h4>1 Build userlib.a. This is a static library aka archive. The app will be linked to this archive.</h4>
+<p><code>mkdir -p build/userlib</code> <code>cd build/userlib</code> <code>cmake ../.. -DTARGET_GROUP=userlib -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=../../cross.cmake</code> <code>make</code> A folder called <b>lib</b> will be created. This folder will contain everything required to build the app. It contains the header files and the userlib.a archive. Copy this folder to the apps folder. <code>cp -R lib ../../apps/</code></p>
+<h4>2 Build app. A example app called blinky is provided.</h4>
+<p>This app turn on LED1. There is some extra code in the example to purposely populate the data and bss sections And also to verify if the GOT is copied properly. ie global variable access. <code>cd apps</code> <code>mkdir build/</code> <code>cd build</code> <code>cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=../../cross.cmake</code> <code>make</code> This should have created <b>blinky.elf</b> file. This file now needs to be converted into TINF.</p>
+<h4>3 Create TINF of the app</h4>
+<p><code>python3 ../../elf2tinf/elf2tinf.py --major 1 --minor 0 blinky.elf blinky</code> This should generate 2 files, the <b>blinky.tinf</b> and <b>blinky_tinf.h</b> <b>blink.tinf</b> is in a binary format which can be loaded over uart, ble, usb, etc. <b>blinky_tinf.h</b> is the same binary data in the form of a header file, so I can test it easily, without implementing the actual transfer of the binary to the mcu. More details about this tool is in the README.md in folder elf2tinf</p>
+<h4>4 Build the kernel</h4>
+<p><code>mkdir -p build/debug</code> <code>cd build/debug</code> Build the kernel, this is the code that will actually load the app and run it <code>cmake ../.. -DTARGET_GROUP=kernel -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=../../cross.cmake</code> <code>make</code> This will generate the <b>main.elf</b> file which needs to be loaded onto the board.</p>
+<h4>5 Load main.elf to hardware</h4>
+<p>This can vary depending on your method. If you use gdb then simply, with something like openocd already running in the background then simply <code>make flash</code></p>
 <h2>Documentation</h2>
-<p>User documentation is in header files To go deeper see the source files Online docs: <a href="https://rgujju.github.io/STM32_Dynamic_Apps/html/index.html">https://rgujju.github.io/STM32_Dynamic_Apps/html/index.html</a> </p><h2>Acknowledgements</h2>
+<p>User documentation is in header files To go deeper see the source files Online docs: <a href="https://rgujju.github.io/STM32_Dynamic_Apps/html/index.html">https://rgujju.github.io/STM32_Dynamic_Apps/html/index.html</a></p>
+<h2>Porting</h2>
+<ul>
+<li>This project uses the STM32F429 mcu but should be portable to any mcu.</li>
+<li>Replace <b>components/STM32F4xx_HAL_Driver</b> and <b><a class="el" href="stm32f4xx__hal__conf_8h.html" title="HAL configuration template file. This file should be copied to the application folder and renamed to ...">include/stm32f4xx_hal_conf.h</a></b> with the HAL of your mcu.</li>
+<li>Replace <b>include/STM32F4xx</b> with the vendor files for your mcu. These files are basically the system, startup and header files of your mcu.</li>
+<li>The above 2 folders are provided by the vendor. In case of STM32, it is possible to use STM32CubeMX to generate them.</li>
+<li>Change <em>MCU Setup</em>, <em>HAL Setup</em> to match your mcu in the <b>CMakeLists.txt</b> file.</li>
+<li>Linker script <b>linker.ld</b> needs to be changed according to your mcu memory.</li>
+</ul>
+<h2>Acknowledgements</h2>
 <p>I learnt these things from the following resources:</p><ul>
 <li><a href="https://github.com/bogdanm/udynlink">https://github.com/bogdanm/udynlink</a></li>
 <li><a href="https://github.com/tock/tock">https://github.com/tock/tock</a></li>
