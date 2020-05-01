@@ -42,7 +42,7 @@
  *          | Field name           | Field size bits (bytes)    | Meaning                                                     |
  *          +----------------------+----------------------------+-------------------------------------------------------------+
  *          | magic                | 32  (4)                    | Always 'TINF' to identify App                               |
- *          | app_name             | 128 (16)                   | Name of App (Actual length allowed is 27)                   |
+ *          | app_name             | 128 (16)                   | Name of App (Actual length allowed is 15)                   |
  *          | major_version        | 8   (1)                    | Major version of App                                        |
  *          | minor_version        | 8   (1)                    | Minor version of App                                        |
  *          | text_size            | 16  (2)                    | Size of text section in words (loaded onto flash)           |
