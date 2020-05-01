@@ -107,6 +107,7 @@ I learnt these things from the following resources:
 * https://github.com/pebble-dev/RebbleOS/blob/master/rcore/appmanager.c
 * https://www.airs.com/blog/archives/38
     - 40 part explaination about linkers
+* https://dl.acm.org/doi/abs/10.1145/1067170.1067188
 * https://www.technovelty.org/linux/plt-and-got-the-key-to-code-sharing-and-dynamic-libraries.html
     - Explains PLT and GOT
 * https://stackoverflow.com/questions/3322911/what-do-linkers-do/33690144#33690144
