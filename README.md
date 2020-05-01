@@ -37,6 +37,8 @@ The app invokes syscalls using the pointer ``sys_struct sys``. The actual addres
 is loaded. When the app invokes a syscall as follows ``sys->SetLed(led_num, led_status);`` the execution flow jumps into the actual
 location of the ``SetLed`` function which was defined in the kernel.
 
+The current example app in **apps/blinky** turns on the green LED while the kernel turns on the red LED on the STM32F429 DISC1 board.
+
 To learn more about GOT and PIC refer the [Acknowledgements](#Acknowledgements), they do a much better job of explaining the concepts.
 
 #### Why did I do this?
@@ -44,7 +46,7 @@ Mainly to learn about the GOT, PIC, memory layout of mcu, and a lot more.
 Gained a lot of knowledge from this project.
 
 ## Usage
-This example works on the STM32F429 DISC0 board. But should be portable to any other mcu.  
+This example is for the STM32F429 DISC1 board. But should be [portable](#Porting) to any other mcu.  
 #### 1 Build userlib.a. This is a static library aka archive. The app will be linked to this archive.  
 ``mkdir -p build/userlib``  
 ``cd build/userlib``  
