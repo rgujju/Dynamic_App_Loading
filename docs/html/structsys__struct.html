@@ -39,6 +39,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div id="navrow1" class="tabs">
     <ul class="tablist">
       <li><a href="index.html"><span>Main&#160;Page</span></a></li>
+      <li><a href="pages.html"><span>Related&#160;Pages</span></a></li>
+      <li><a href="namespaces.html"><span>Namespaces</span></a></li>
       <li class="current"><a href="annotated.html"><span>Classes</span></a></li>
       <li><a href="files.html"><span>Files</span></a></li>
       <li>
@@ -63,6 +65,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
     <ul class="tablist">
       <li><a href="annotated.html"><span>Class&#160;List</span></a></li>
       <li><a href="classes.html"><span>Class&#160;Index</span></a></li>
+      <li><a href="functions.html"><span>Class&#160;Members</span></a></li>
     </ul>
   </div>
 <!-- window showing the filter options -->
@@ -88,15 +91,22 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="title">sys_struct Struct Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>This struct contains APIs for calling system functions It is basically a jump table. Depending on weather the KERNEL is built or the libs for the app, different <a class="el" href="structsys__struct.html" title="This struct contains APIs for calling system functions It is basically a jump table. Depending on weather the KERNEL is built or the libs for the app, different sys_struct definitions are compiled. For Kernel: The complete struct with each member is compiled For userlib for the app: Only a &#39;const sys_struct* sys&#39; pointer is defined. The address of this pointer is made to point to the actual sys_struct in the kernel at load time in the LoadApp API. ">sys_struct</a> definitions are compiled. For Kernel: The complete struct with each member is compiled For userlib for the app: Only a 'const sys_struct* sys' pointer is defined. The address of this pointer is made to point to the actual <a class="el" href="structsys__struct.html" title="This struct contains APIs for calling system functions It is basically a jump table. Depending on weather the KERNEL is built or the libs for the app, different sys_struct definitions are compiled. For Kernel: The complete struct with each member is compiled For userlib for the app: Only a &#39;const sys_struct* sys&#39; pointer is defined. The address of this pointer is made to point to the actual sys_struct in the kernel at load time in the LoadApp API. ">sys_struct</a> in the kernel at load time in the LoadApp API.  
+ <a href="structsys__struct.html#details">More...</a></p>
+
+<p><code>#include &lt;<a class="el" href="syscall_8h_source.html">syscall.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:ae8ac3e76aa7725289c020392e88643c0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae8ac3e76aa7725289c020392e88643c0"></a>
+<tr class="memitem:a64ba01c71e195fc80975d0fd65c49c8d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a64ba01c71e195fc80975d0fd65c49c8d"></a>
 uint8_t(*&#160;</td><td class="memItemRight" valign="bottom"><b>set_led</b> )(uint8_t Led_Num, uint8_t Led_State)</td></tr>
-<tr class="separator:ae8ac3e76aa7725289c020392e88643c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="separator:a64ba01c71e195fc80975d0fd65c49c8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<hr/>The documentation for this struct was generated from the following file:<ul>
-<li>apps/lib/<a class="el" href="apps_2lib_2syscall_8h_source.html">syscall.h</a></li>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>This struct contains APIs for calling system functions It is basically a jump table. Depending on weather the KERNEL is built or the libs for the app, different <a class="el" href="structsys__struct.html" title="This struct contains APIs for calling system functions It is basically a jump table. Depending on weather the KERNEL is built or the libs for the app, different sys_struct definitions are compiled. For Kernel: The complete struct with each member is compiled For userlib for the app: Only a &#39;const sys_struct* sys&#39; pointer is defined. The address of this pointer is made to point to the actual sys_struct in the kernel at load time in the LoadApp API. ">sys_struct</a> definitions are compiled. For Kernel: The complete struct with each member is compiled For userlib for the app: Only a 'const sys_struct* sys' pointer is defined. The address of this pointer is made to point to the actual <a class="el" href="structsys__struct.html" title="This struct contains APIs for calling system functions It is basically a jump table. Depending on weather the KERNEL is built or the libs for the app, different sys_struct definitions are compiled. For Kernel: The complete struct with each member is compiled For userlib for the app: Only a &#39;const sys_struct* sys&#39; pointer is defined. The address of this pointer is made to point to the actual sys_struct in the kernel at load time in the LoadApp API. ">sys_struct</a> in the kernel at load time in the LoadApp API. </p>
+</div><hr/>The documentation for this struct was generated from the following file:<ul>
+<li>modules/sys_module/<a class="el" href="syscall_8h_source.html">syscall.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

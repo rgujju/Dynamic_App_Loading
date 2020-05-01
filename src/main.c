@@ -2,13 +2,7 @@
  ******************************************************************************
  * @file    main.c
  * @brief   Main file
- *          contains the main code for blinking an LED
- @verbatim
-  ==============================================================================
-                    ##### Dynamic Loading of apps  #####
-  ==============================================================================
-
- @endverbatim
+ *          Load the app and also turn on a LED
  ******************************************************************************
  * @attention
  *
@@ -63,23 +57,6 @@ static GPIO_InitTypeDef  GPIO_InitStruct;
 /** @brief   LED2 port */
 #define LED2_PORT GPIOG
 
-
-/**
-* @brief    Task for blinking an LED every second
-*
-* @param    pvParameters void pointer to task parameters
-*
-* @retval   void
-*/
-void LedBlinky_Task(void *pvParameters) {
-    while (1) {
-        sys.set_led(LED1, LED_ON);
-        vTaskDelay(1000/portTICK_PERIOD_MS);
-        sys.set_led(LED1, LED_OFF);
-        vTaskDelay(1000/portTICK_PERIOD_MS);
-    }
-}
-
 int main ( void ) {
 #if SEMIHOSTING
     initialise_monitor_handles();
@@ -95,18 +72,15 @@ int main ( void ) {
     GPIO_InitStruct.Pull  = GPIO_PULLUP;
     GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
     HAL_GPIO_Init(LED1_PORT, &GPIO_InitStruct);
-    //int (*app_main)() = (void*)0x08010001;
-    //app_main();
+    
+    // Load the app defined in blinky_tinf.h
     LoadApp(app);
-    //	xTaskCreate( LedBlinky_Task,						/* The function that implements the task. */
-    // 				"LedBlinky", 							/* The text name assigned to the task - for debug only as it is not used by the kernel. */
-    //				configMINIMAL_STACK_SIZE, 				/* The size of the stack to allocate to the task. */
-    // 				NULL, 									/* The parameter passed to the task - just to check the functionality. */
-    //				3, 										/* The priority assigned to the task. */
-    //				NULL );									/* The task handle is not required, so NULL is passed. */
+
     uint8_t led_ret = sys.set_led(LED2, LED_ON);
     DBUG("Return value of set_led = %d", led_ret);
+    
     vTaskStartScheduler();
+    
     while (1) {
     }
     return 0;

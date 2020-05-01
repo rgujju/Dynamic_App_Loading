@@ -1,3 +1,35 @@
+/**
+ ******************************************************************************
+ * @file    app_loader.c
+ * @brief   Contains function for loading the app and setting up the freertos
+ *          task
+ ******************************************************************************
+ * @attention
+ *
+ * LICENSE
+ *
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2020 Rohit Gujarathi rgujju.github.io
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+*/
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -6,7 +38,7 @@
 #include "app_loader.h"
 
 extern uint32_t sys;
-// Tests:
+// TODO Add Tests:
 // 2) Check name length =0,1,15,16,and greater, Check if it is 0s after name length
 // 3) Check little endian/ big endian or whatever
 // 4) malloc fails
@@ -35,9 +67,9 @@ int8_t LoadApp(const uint8_t* tinf_img) {
         //DBUG("App data size: %hu 32 bit word", tinf->data_size);
         //DBUG("App bss size: %hu 32 bit word", tinf->bss_size);
         //DBUG("App GOT entries: %ld", tinf->got_entries);
-
         // Allocate memory for data and bss section of the app on the heap
         uint32_t app_stack_size = tinf->data_size+tinf->got_entries+tinf->bss_size;
+        // TODO: Add the size of the stack actually required by the app, currently hardcoded to 10 words (40 bytes)
         //DBUG("Allocating app memory of %ld bytes",app_stack_size*4);
         StackType_t* app_stack = malloc((app_stack_size+10)*4);
         if(app_stack == NULL) {
@@ -47,11 +79,10 @@ int8_t LoadApp(const uint8_t* tinf_img) {
         //DBUG("Application stack: 0x%08X", app_stack);
         if(app_stack_size != 0) {
             if(tinf->data_size > 0) {
-                // Copy data from flash to the RAM we allocated above
+                // Copy data section from flash to the RAM we allocated above
                 memcpy(app_stack, data_base, (tinf->data_size*4));
                 //DBUG("Data at data section (flash): 0x%08X", *(uint32_t*)(tinf->bin+(tinf->text_size)));
                 //DBUG("Data at data section (RAM): 0x%08X", *(uint32_t*)(app_stack));
-                
                 // Replace the sys_struct address to the one on the mcu
                 // The start of the app_stack will point to start of the data section
                 // This is where the sys_struct address was kept by the linker script
@@ -71,9 +102,9 @@ int8_t LoadApp(const uint8_t* tinf_img) {
                 uint32_t* got_entries_base = data_base + tinf->data_size;
                 // got_base is the value which will get loaded to r9
                 // This is address of the base of GOT which will actually be used
-                // by the app
+                // by the app for global data accesses
                 got_base = app_stack + tinf->data_size;
-                // While copying add the base address of app_stack to each element of the GOT
+                // While copying add the base address of app_stack in RAM to each element of the GOT
                 // TODO: Add more explaination about thi
                 uint32_t data_offset = tinf->text_size*4;
                 //DBUG("Data offset: 0x%08X",data_offset);
@@ -89,20 +120,17 @@ int8_t LoadApp(const uint8_t* tinf_img) {
             //uint32_t* app_stack_got = app_stack + tinf->data_size;
             //uint32_t* got_entries_base = data_base + tinf->data_size;
             //for(uint8_t i = 0; i < tinf->got_entries; i++) {
-                //DBUG("app_stack_got: 0x%08X: 0x%08X: 0x%08X and flash: 0x%08X", app_stack_got, *app_stack_got, *((uint32_t*)((uintptr_t)(*app_stack_got))), *got_entries_base++);
-                //DBUG("app_stack_got: 0x%08X: 0x%08X and flash: 0x%08X", app_stack_got, *app_stack_got, *got_entries_base++);
-                //app_stack_got++;
+            //DBUG("app_stack_got: 0x%08X: 0x%08X: 0x%08X and flash: 0x%08X", app_stack_got, *app_stack_got, *((uint32_t*)((uintptr_t)(*app_stack_got))), *got_entries_base++);
+            //DBUG("app_stack_got: 0x%08X: 0x%08X and flash: 0x%08X", app_stack_got, *app_stack_got, *got_entries_base++);
+            //app_stack_got++;
             //}
-            
         }
         TaskFunction_t app_main_orig = (TaskFunction_t)(tinf->bin);
         TaskFunction_t app_main = (TaskFunction_t)(((uintptr_t)(tinf->bin))|1); /* OR'ed with 1 to set the thumb bit */
         //DBUG("App entry point: 0x%08X", app_main);
+        //DBUG("Check entry point: 0x%08X Data: 0x%08lX", (uint32_t*)app_main_orig, *(uint32_t*)app_main_orig);
         // TODO: The following line gives segfault for some reason
         //DBUG("Data at app entry point: 0x%08X", *((uint32_t*)(((uintptr_t)app_main)&0xFFFFFFFE)));
-        //DBUG("Check entry point: 0x%08X Data: 0x%08lX", (uint32_t*)app_main_orig, *(uint32_t*)app_main_orig);
-
-        //app_main(got_base);
         xHandle = xTaskCreateStatic(
                       app_main,       		/* Function that implements the task. */
                       (const char *)tinf->app_name,		/* Text name for the task. */

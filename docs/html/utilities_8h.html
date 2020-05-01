@@ -39,6 +39,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div id="navrow1" class="tabs">
     <ul class="tablist">
       <li><a href="index.html"><span>Main&#160;Page</span></a></li>
+      <li><a href="pages.html"><span>Related&#160;Pages</span></a></li>
+      <li><a href="namespaces.html"><span>Namespaces</span></a></li>
       <li><a href="annotated.html"><span>Classes</span></a></li>
       <li class="current"><a href="files.html"><span>Files</span></a></li>
       <li>
@@ -86,9 +88,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!-- top -->
 <div class="header">
   <div class="summary">
+<a href="#nested-classes">Classes</a> &#124;
 <a href="#define-members">Macros</a> &#124;
-<a href="#func-members">Functions</a> &#124;
-<a href="#var-members">Variables</a>  </div>
+<a href="#typedef-members">Typedefs</a> &#124;
+<a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
 <div class="title">utilities.h File Reference</div>  </div>
 </div><!--header-->
@@ -102,20 +105,29 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 Include dependency graph for utilities.h:</div>
 <div class="dyncontent">
 <div class="center"><img src="utilities_8h__incl.png" border="0" usemap="#include_2utilities_8h" alt=""/></div>
+<map name="include_2utilities_8h" id="include_2utilities_8h">
+</map>
 </div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
 <div class="center"><img src="utilities_8h__dep__incl.png" border="0" usemap="#include_2utilities_8hdep" alt=""/></div>
 <map name="include_2utilities_8hdep" id="include_2utilities_8hdep">
-<area shape="rect" id="node2" href="simple__module_8c.html" title="Contains simple functions. " alt="" coords="5,169,168,211"/>
-<area shape="rect" id="node3" href="simple__module_8h.html" title="Contains simple functions. " alt="" coords="65,80,228,121"/>
-<area shape="rect" id="node4" href="utilities_8c.html" title="Contains helper code. " alt="" coords="252,87,348,114"/>
+<area shape="rect" id="node2" href="app__loader_8h.html" title="Contains function for loading the app and setting up the freertos task. " alt="" coords="5,80,144,121"/>
+<area shape="rect" id="node4" href="led_8c.html" title="Contains APIs for setting state of the LED. " alt="" coords="169,80,314,121"/>
+<area shape="rect" id="node5" href="syscall_8c.html" title="Contains APIs for system calls from the APP. " alt="" coords="338,80,483,121"/>
+<area shape="rect" id="node6" href="utilities_8c.html" title="Contains helper code. " alt="" coords="508,87,604,114"/>
+<area shape="rect" id="node3" href="app__loader_8c.html" title="Contains function for loading the app and setting up the freertos task. " alt="" coords="5,169,144,211"/>
 </map>
 </div>
 </div>
 <p><a href="utilities_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcontext__state__frame.html">context_state_frame</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
 Macros</h2></td></tr>
 <tr class="memitem:a367772d4feeaf38308b41630939b45e3"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="utilities_8h.html#a367772d4feeaf38308b41630939b45e3">DBUG_EN</a>&#160;&#160;&#160;1</td></tr>
@@ -128,6 +140,15 @@ Macros</h2></td></tr>
 <tr class="separator:af9ee3f2ce438c6fabeae55035a0b961b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a436ed095a0c968290800cc1aad21b9af"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="utilities_8h.html#a436ed095a0c968290800cc1aad21b9af">Error_Handler</a>&#160;&#160;&#160;<a class="el" href="utilities_8c.html#a5f14040bbc7bf1a32d27edb63560bbd7">FaultHandler</a></td></tr>
 <tr class="separator:a436ed095a0c968290800cc1aad21b9af"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0334634688a0068d613718cefd0c35a7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0334634688a0068d613718cefd0c35a7"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>DUMMY_SYS_ADDR</b>&#160;&#160;&#160;0xA5A5A5A5</td></tr>
+<tr class="separator:a0334634688a0068d613718cefd0c35a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
+Typedefs</h2></td></tr>
+<tr class="memitem:a5f77e9e734b1397d15119112c7bbb5a5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5f77e9e734b1397d15119112c7bbb5a5"></a>
+typedef struct <a class="el" href="structcontext__state__frame.html">context_state_frame</a>&#160;</td><td class="memItemRight" valign="bottom"><b>sContextStateFrame</b></td></tr>
+<tr class="separator:a5f77e9e734b1397d15119112c7bbb5a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
@@ -135,15 +156,6 @@ Functions</h2></td></tr>
 void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="utilities_8h.html#a5f14040bbc7bf1a32d27edb63560bbd7">FaultHandler</a> ()</td></tr>
 <tr class="memdesc:a5f14040bbc7bf1a32d27edb63560bbd7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Automating exception analysis <a href="https://interrupt.memfault.com/blog/cortex-m-fault-debug#automating-the-analysis">https://interrupt.memfault.com/blog/cortex-m-fault-debug#automating-the-analysis</a>. <br /></td></tr>
 <tr class="separator:a5f14040bbc7bf1a32d27edb63560bbd7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad289114c06f779f13621230e5a52d5ec"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad289114c06f779f13621230e5a52d5ec"></a>
-struct&#160;</td><td class="memItemRight" valign="bottom"><b>__attribute__</b> ((packed)) context_state_frame</td></tr>
-<tr class="separator:ad289114c06f779f13621230e5a52d5ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
-Variables</h2></td></tr>
-<tr class="memitem:a09e0ca718616a9788fe62218941485e9"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a09e0ca718616a9788fe62218941485e9"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>sContextStateFrame</b></td></tr>
-<tr class="separator:a09e0ca718616a9788fe62218941485e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Contains helper code. </p>

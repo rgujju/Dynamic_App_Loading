@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['faulthandler',['FaultHandler',['../utilities_8h.html#a5f14040bbc7bf1a32d27edb63560bbd7',1,'FaultHandler():&#160;utilities.c'],['../utilities_8c.html#a5f14040bbc7bf1a32d27edb63560bbd7',1,'FaultHandler():&#160;utilities.c']]]
+  ['loadapp',['LoadApp',['../app__loader_8c.html#a58af04e2893b7a8b445da688f5f4132d',1,'LoadApp(const uint8_t *tinf_img):&#160;app_loader.c'],['../app__loader_8h.html#a58af04e2893b7a8b445da688f5f4132d',1,'LoadApp(const uint8_t *tinf_img):&#160;app_loader.c']]]
 ];

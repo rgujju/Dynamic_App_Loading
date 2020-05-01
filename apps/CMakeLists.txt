@@ -175,27 +175,27 @@ if(CMAKE_CROSSCOMPILING STREQUAL "1")
         file(GLOB APP_SOURCES ${APP_NAME}/*.c)
 
         # Add executable target
-        add_executable(${APP_NAME}
+        add_executable(${APP_NAME}.elf
             ${PROJECT_SOURCE_DIR}/app_startup.s
             ${APP_SOURCES}
             )
         # Generate disassembly
-        objdump(${APP_NAME})
+        objdump(${APP_NAME}.elf)
 
-        target_include_directories(${APP_NAME}
+        target_include_directories(${APP_NAME}.elf
             PUBLIC
             ${CMAKE_CURRENT_LIST_DIR}/${APP_NAME}
             ${CMAKE_CURRENT_LIST_DIR}/lib
             )
 
-        target_link_libraries(${APP_NAME}
+        target_link_libraries(${APP_NAME}.elf
             PRIVATE
             ${CMAKE_CURRENT_LIST_DIR}/lib/libsys_module.a
             )
 
         if(APP_COMPILE_FLAGS STREQUAL " ")
         else()
-        target_compile_definitions(${APP_NAME}
+        target_compile_definitions(${APP_NAME}.elf
                 PUBLIC
                 ${APP_COMPILE_FLAGS}
                 )

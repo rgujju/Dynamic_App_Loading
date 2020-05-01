@@ -270,7 +270,9 @@ if(TARGET_GROUP STREQUAL kernel)
         hal
         )
     add_subdirectory(modules)
-
+    set(EXEC_COMPILE_DEFS
+        ${MODULE_COMPILE_DEFS}
+        )
 
     ######################################################################
     # @Target: ${PROJECT_NAME}.elf
@@ -347,7 +349,7 @@ if(TARGET_GROUP STREQUAL kernel)
         )
     target_compile_definitions(${PROJECT_NAME}.elf
         PUBLIC
-        ${PUBLIC_COMPILE_DEFS}
+        ${EXEC_COMPILE_DEFS}
         )
 
     ######################################################################
@@ -375,10 +377,10 @@ if(TARGET_GROUP STREQUAL kernel)
 
         # exclude folders while making documentation
         # should be separated by spaces
-        set(DOXYGEN_EXCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/components/* ${CMAKE_CURRENT_SOURCE_DIR}/build/* ${CMAKE_CURRENT_SOURCE_DIR}/${MCU_DIR}*")
+        set(DOXYGEN_EXCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/components/* ${CMAKE_CURRENT_SOURCE_DIR}/build/* ${CMAKE_CURRENT_SOURCE_DIR}/${MCU_DIR}* ${CMAKE_CURRENT_SOURCE_DIR}/apps/lib")
 
         # set mainpage in doxygen
-        set(DOXYGEN_MAIN_PAGE "README.md")
+        set(DOXYGEN_MAIN_PAGE "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
 
         # request to configure the file
         configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
