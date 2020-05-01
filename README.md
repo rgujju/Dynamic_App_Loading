@@ -15,7 +15,7 @@
 
 ## Usage
 This example works on the STM32F429 DISC0 board. But should be portable to any other mcu.  
-* First build the userlib.a. This is a static library aka archive. The app will be linked to this archive.  
+### First build the userlib.a. This is a static library aka archive. The app will be linked to this archive.  
 ``mkdir -p build/userlib``  
 ``cd build/userlib``  
 ``cmake ../.. -DTARGET_GROUP=userlib -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=../../cross.cmake``  
@@ -25,7 +25,7 @@ It contains the header files and the userlib.a archive.
 Copy this folder to the apps folder.  
 ``cp -R lib ../../apps/``  
 
-* Now build the app. A example app called blinky is provided.  
+### Now build the app. A example app called blinky is provided.  
 This app turn on LED1. There is some extra code in the example to purposely populate the data and bss sections  
 And also to verify if the GOT is copied properly. ie global variable access.  
 ``cd apps``  
@@ -35,7 +35,7 @@ And also to verify if the GOT is copied properly. ie global variable access.
 ``make``  
 This should have created **blinky.elf** file. This file now needs to be converted into TINF.
 
-* Create TINF of the app
+### Create TINF of the app
 ``python3 ../../elf2tinf/elf2tinf.py --major 1 --minor 0 blinky.elf blinky``  
 This should generate 2 files, the **blinky.tinf** and **blinky_tinf.h**   
 **blink.tinf** is in a binary format which can be loaded over uart, ble, usb, etc.  
@@ -43,7 +43,7 @@ This should generate 2 files, the **blinky.tinf** and **blinky_tinf.h**
 without implementing the actual transfer of the binary to the mcu.  
 More details about this tool is in the README.md in folder elf2tinf  
 
-* Build the kernel
+### Build the kernel
 ``mkdir -p build/debug``  
 ``cd build/debug``  
 Build the kernel, this is the code that will actually load the app and run it  
@@ -51,7 +51,7 @@ Build the kernel, this is the code that will actually load the app and run it
 ``make``  
 This will generate the **main.elf** file which needs to be loaded onto the board.
 
-* Load main.elf
+### Load main.elf
 This can vary depending on your method.  
 If you use gdb then simply, with something like openocd already running in the background then simply  
 ``make flash``  
