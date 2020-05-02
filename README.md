@@ -24,8 +24,12 @@ can be changed without needing to rebuild the app.
 
 #### App
 The app is compiled as a Position independent Code. 
-The following flags are used:``-fpic -msingle-pic-base -mpic-register=r9 -mno-pic-data-is-text-relative -mlong-calls`` 
-This creates an executable which can be run from any memory location given that the GOT address is in the register **R9**
+The following flags are used:``-fpic -msingle-pic-base -mpic-register=r9 -mno-pic-data-is-text-relative -mlong-calls``. 
+This creates an executable which can be run from any memory location given that the GOT address is in the register **R9**.
+This value is given as a parameter while calling the app, so this gets placed in r0. 
+The ``AppStart`` function defined in **app_startup.s** is used to copy the value from r0 to r9. This is the first instruction that
+gets executed when the app is started. Followed by the ``main`` function defined in app. This sequence is defined using the app
+linker script **app_base.ld**.  
 gcc generates the executable in elf which contains a lot of information and is quite large for a mcu. So this elf file is 
 converted into [TINF](https://github.com/rgujju/STM32_Dynamic_Apps/tree/master/elf2tinf), which can be easily loaded onto a mcu.  
 
