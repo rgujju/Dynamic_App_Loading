@@ -45,6 +45,8 @@ extern uint32_t sys;
 // 5) app loading fails in xtaskCreateStatic
 // 6) tinf->bin should fail
 
+#define DEFAULT_STACK_SIZE 10
+
 /* Structure that will hold the TCB of the task being created. */
 StaticTask_t xTaskBuffer;
 TaskHandle_t xHandle = NULL;
@@ -66,22 +68,25 @@ int8_t LoadApp(const uint8_t* tinf_img) {
         //DBUG("App GOT entries: %ld", tinf->got_entries);
         // Allocate memory for data and bss section of the app on the heap
         uint32_t app_data_size = tinf->data_size+tinf->got_entries+tinf->bss_size;
-        // TODO: Add the size of the stack actually required by the app, currently hardcoded to 10 words (40 bytes), change in the xTaskCreate API also
+        // TODO: Add the size of the stack actually required by the app, currently hardcoded to DEFAULT_STACK_SIZE words, change in the xTaskCreate API also
         //DBUG("Allocating app memory of %ld bytes",app_data_size*4);
-        StackType_t* app_data_base = malloc((app_data_size+32)*4);
+        StackType_t* app_data_base = malloc((app_data_size+DEFAULT_STACK_SIZE)*4);
         if(app_data_base == NULL) {
             return APP_OOM;
         }
         // app_stack_base is the address of the base of the stack used by 
         // the rtos task
         uint32_t* app_stack_base = app_data_base+app_data_size;
-        // got_base is the value which will get loaded to r9
+        // app_got_base is the value which will get loaded to r9
         // This is address of the base of GOT which will actually be used
         // by the app for global data accesses
-        uint32_t* got_base = app_data_base + tinf->data_size;        
-        //DBUG("Application stack: 0x%08X", app_data_base);
+		// This value is passed as the parameter to the app_main. The app will
+		// copy the this value from r0 to r9 register 
+        uint32_t* app_got_base = app_data_base + tinf->data_size;
+		//DBUG("Application stack: 0x%08X", app_data_base);
 
         // Layout in RAM:
+		// low memory (0x200014a0)                                  high memory (0x200014cc)   
         // |<--------------------- app_data_size ---------------------->|
         // |<-- tinf->data_size -->|<-- got_entries -->|<-- bss_size -->|<-- stack_size -->|
         // +-----------------------+-------------------+----------------+------------------+
@@ -107,7 +112,7 @@ int8_t LoadApp(const uint8_t* tinf_img) {
 
                 // app_got_base is the base of the GOT in the RAM
                 // this is where GOT will be copied to
-                uint32_t* app_got_base = app_data_base + tinf->data_size;
+                
                 //DBUG("GOT in app stack: %p", app_got_base);
                 // got_entries_base is the base of the GOT in the flash
                 // tinf->got_entries number of entries from this location
@@ -117,7 +122,7 @@ int8_t LoadApp(const uint8_t* tinf_img) {
                 // While copying add the base address (app_data_base) in RAM to each element of the GOT
                 // TODO: Add more explaination about this
                 // Need to subtract the data_offset to get the location with respect to 0
-                uint32_t data_offset = 0x10000000;//tinf->text_size*4;
+                uint32_t data_offset = 0x10000000;
                 //DBUG("Data offset: 0x%08X",data_offset);
                 for(uint8_t i = 0; i < tinf->got_entries; i++) {
 					if(*(got_entries_base+i) >= data_offset){
@@ -133,7 +138,7 @@ int8_t LoadApp(const uint8_t* tinf_img) {
             }
             if(tinf->bss_size > 0) {
                 // Set BSS section to 0
-                memset(app_data_base+((tinf->text_size+tinf->data_size)*4), 0, tinf->bss_size*4);
+                memset(app_data_base+(tinf->data_size+tinf->got_entries), 0, tinf->bss_size*4);
                 //DBUG("Data at bss section (RAM): 0x%08X", *(uint32_t*)(app_data_base+(tinf->data_size)));
             }
             //uint32_t* app_stack_got = app_data_base + tinf->data_size;
@@ -156,8 +161,8 @@ int8_t LoadApp(const uint8_t* tinf_img) {
         xHandle = xTaskCreateStatic(
                       app_main,       		/* Function that implements the task. */
                       (const char *)tinf->app_name,		/* Text name for the task. */
-                      32,		/* Number of indexes in the xStack array. */
-                      got_base,    				/* Parameter passed into the task. */
+                      DEFAULT_STACK_SIZE,		/* Number of indexes in the xStack array. */
+                      app_got_base,    				/* Parameter passed into the task. */
                       tskIDLE_PRIORITY,		/* Priority at which the task is created. */
                       app_stack_base,          	/* Array to use as the task's stack. */
                       &xTaskBuffer);  		/* Variable to hold the task's data structure. */
