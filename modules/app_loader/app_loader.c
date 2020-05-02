@@ -156,7 +156,7 @@ int8_t LoadApp(const uint8_t* tinf_img) {
         xHandle = xTaskCreateStatic(
                       app_main,       		/* Function that implements the task. */
                       (const char *)tinf->app_name,		/* Text name for the task. */
-                      128,		/* Number of indexes in the xStack array. */
+                      32,		/* Number of indexes in the xStack array. */
                       got_base,    				/* Parameter passed into the task. */
                       tskIDLE_PRIORITY,		/* Priority at which the task is created. */
                       app_stack_base,          	/* Array to use as the task's stack. */
