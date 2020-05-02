@@ -1,7 +1,9 @@
 
 MEMORY
 {
+    /* TODO: Change the LENGTH to a resonable value */
     FLASH (rwx)      : ORIGIN = 0x00000000, LENGTH = 2048K
+    RAM(rwx)         : ORIGIN = 0x10000000, LENGTH = 32K
 }
 
 
@@ -14,6 +16,7 @@ SECTIONS
     .text :
     {
         *(.AppStart)
+        *(.text.main)
         *(.text*)
         *(.glue_7)         /* glue arm to thumb code */
         *(.glue_7t)        /* glue thumb to arm code */
@@ -80,7 +83,7 @@ SECTIONS
         *(.sys_struct)
         *(.data*)
         . = ALIGN(4);
-    } >FLASH
+    } >RAM
     app_sidata = LOADADDR(.data);
   
     .got :
@@ -90,7 +93,7 @@ SECTIONS
         *(.got)        
         *(.got.plt)
         app_edata = .;     
-    } > FLASH
+    } > RAM
     
     /* The 'bss' section is similar to the 'data' section,
     *  but its space is initialized to all 0s at the
@@ -110,7 +113,7 @@ SECTIONS
         . = ALIGN(4);
         app_ebss = .;
 
-    } >FLASH
+    } >RAM
     
     /* Remove information from the standard libraries */
     /DISCARD/ :

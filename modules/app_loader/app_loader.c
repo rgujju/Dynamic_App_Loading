@@ -68,7 +68,7 @@ int8_t LoadApp(const uint8_t* tinf_img) {
         uint32_t app_data_size = tinf->data_size+tinf->got_entries+tinf->bss_size;
         // TODO: Add the size of the stack actually required by the app, currently hardcoded to 10 words (40 bytes), change in the xTaskCreate API also
         //DBUG("Allocating app memory of %ld bytes",app_data_size*4);
-        StackType_t* app_data_base = malloc((app_data_size+10)*4);
+        StackType_t* app_data_base = malloc((app_data_size+32)*4);
         if(app_data_base == NULL) {
             return APP_OOM;
         }
@@ -117,11 +117,19 @@ int8_t LoadApp(const uint8_t* tinf_img) {
                 // While copying add the base address (app_data_base) in RAM to each element of the GOT
                 // TODO: Add more explaination about this
                 // Need to subtract the data_offset to get the location with respect to 0
-                uint32_t data_offset = tinf->text_size*4;
+                uint32_t data_offset = 0x10000000;//tinf->text_size*4;
                 //DBUG("Data offset: 0x%08X",data_offset);
                 for(uint8_t i = 0; i < tinf->got_entries; i++) {
-                    *(app_got_base+i) = ((*(got_entries_base+i))-data_offset)+(uint32_t)((uintptr_t)app_data_base);
-                }
+					if(*(got_entries_base+i) >= data_offset){
+                    	// If the value is greater than data_offset then it is in the RAM section.
+						// So add the app_data_base to it.
+						*(app_got_base+i) = ((*(got_entries_base+i))-data_offset)+(uint32_t)((uintptr_t)app_data_base);
+                	}else{
+						// else it is a relocation in the flash
+						// so add the flash->bin ie the base of the app in the flash to it 
+						*(app_got_base+i) = (*(got_entries_base+i))+(uint32_t)((uintptr_t)tinf->bin);
+					}
+				}
             }
             if(tinf->bss_size > 0) {
                 // Set BSS section to 0
@@ -148,7 +156,7 @@ int8_t LoadApp(const uint8_t* tinf_img) {
         xHandle = xTaskCreateStatic(
                       app_main,       		/* Function that implements the task. */
                       (const char *)tinf->app_name,		/* Text name for the task. */
-                      40,		/* Number of indexes in the xStack array. */
+                      128,		/* Number of indexes in the xStack array. */
                       got_base,    				/* Parameter passed into the task. */
                       tskIDLE_PRIORITY,		/* Priority at which the task is created. */
                       app_stack_base,          	/* Array to use as the task's stack. */
