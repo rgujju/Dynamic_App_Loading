@@ -12,6 +12,7 @@ uint8_t dummy_function(){
     uint8_t led_status = dummy_function_2();
     return led_status;
 }
+
 // dummy_function, dummy_function_2 and the global variables
 // are there just to verify if the relocation is actually working
 
