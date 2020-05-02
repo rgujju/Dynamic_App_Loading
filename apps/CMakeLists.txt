@@ -73,6 +73,7 @@ set(CMAKE_EXE_LINKER_FLAGS " \
 --specs=nosys.specs \
 -nostdlib \
 -Wl,--undefined=main \
+-Wl,--emit-relocs \
 "CACHE INTERNAL "Linker options")
 
 #------------------

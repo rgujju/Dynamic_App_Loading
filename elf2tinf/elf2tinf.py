@@ -55,6 +55,7 @@ data_section = '.data'
 bss_section = '.bss'
 got_section = '.got'
 symtab_section = '.symtab'
+reloc_section = '.rel.text'
 
 ## ConvertFile will convert the elf file into the tinf file and header file
 #
@@ -135,6 +136,36 @@ def ConvertFile(elf_file, app_name, major_version=1, minor_version=0):
         logging.info(bss_section+" section is of size "+str(bss_section_size)+" bytes or "+str(bss_section_size/4)+" 32 bit words")
         # Add size of bss section to the header in words (since it is 32 bit system we divide by 4 to get number of words)
         tin+=struct.pack('<H',int(bss_section_size/4))
+
+
+        # Fetch the symbol table
+        # The symbol table is used to check if a particular relocation
+        # is of an object (variable) or a function.
+        symtab = elffile.get_section_by_name(symtab_section)
+        if not isinstance(symtab, elf.sections.Section):
+            logging.error("ELF file has no "+symtab_section+" section")
+            return -1
+
+        # Fetch the text relocation section
+        rel_text = elffile.get_section_by_name(reloc_section)
+        if not isinstance(rel_text, elf.relocation.RelocationSection):
+            logging.error("ELF file has no "+reloc_section+" section")
+            return -1
+
+        for reloc in rel_text.iter_relocations():
+            # TODO: handle different types of relocations?
+            # Currently only R_ARM_GOT_BREL is handled
+            if(reloc['r_info_type'] == elf.enums.ENUM_RELOC_TYPE_ARM['R_ARM_GOT_BREL']):
+                symbol = symtab.get_symbol(reloc['r_info_sym'])
+                if(symbol.entry['st_info']['type'] == 'STT_OBJECT'):
+                    logging.debug("Variable Reloc offset: " + str(reloc['r_offset']) + " Relocation symbol: "+symbol.name)
+                elif(symbol.entry['st_info']['type'] == 'STT_FUNC'):
+                    logging.debug("Function Reloc offset: " + str(reloc['r_offset']) + " Relocation symbol: "+symbol.name)
+                else:
+                    logging.warning("Invalid symbol type "+symbol.entry['st_info']['type']+ ". Only Objects and functions supported.")
+            else:
+                # TODO: Reverse map the number to relocation name.
+                logging.warning("Invalid relocation "+str(reloc['r_info_type'])+". Only R_ARM_GOT_BREL supported.")
 
         # Fetch the .got section, this section has the GOT table
         got = elffile.get_section_by_name(got_section)
