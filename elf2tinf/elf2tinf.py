@@ -201,7 +201,7 @@ def ConvertFile(elf_file, app_name, major_version=1, minor_version=0):
     # Create header file as well to test easily
     header_file = tinf_name+"_tinf.h"
     with open(header_file,"w") as f:
-        f.write("const uint8_t app[] = {")
+        f.write("const uint8_t app[] __attribute__((aligned)) = {")
         for i,hex_val in enumerate(tin):
             f.write(hex(hex_val))
             f.write(",")
