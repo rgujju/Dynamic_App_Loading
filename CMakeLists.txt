@@ -24,23 +24,32 @@
 
 cmake_minimum_required(VERSION 3.11.1)
 
-#if(NOT CMAKE_TOOLCHAIN_FILE)
-#set(CMAKE_TOOLCHAIN_FILE ../cross.cmake)
-#message(WARNING "[WARN] CMAKE_TOOLCHAIN_FILE not specified: Using ${CMAKE_TOOLCHAIN_FILE} by default")
-#endif()
-if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the type of build." FORCE)
-    message(WARNING "[WARN] CMAKE_BUILD_TYPE not specified: Using ${CMAKE_BUILD_TYPE} by default")
-endif()
-
-set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
-
 #################### CONFIGURABLE SECTION ###########################
+#------------------
+# Modules Setup
+#------------------
+list(APPEND ZEPHYR_EXTRA_MODULES
+	${CMAKE_CURRENT_SOURCE_DIR}/modules/sys_module
+	${CMAKE_CURRENT_SOURCE_DIR}/modules/app_loader
+	)
 
 #-------------------
-# Project Setup
+# Common macros for kernel and its modules
 #-------------------
-enable_language(C ASM)
+set(MODULE_COMPILE_DEFS
+	SEMIHOSTING=1
+	RKERNEL=1
+	)
+
+#list(APPEND SYSCALL_INCLUDE_DIRS
+#	${CMAKE_CURRENT_SOURCE_DIR}/modules/sys_module/zephyr
+#	)
+
+# Define the linker script location
+#set(KERNEL_LINKER_SCRIPT linker.ld)
+
+find_package(Zephyr HINTS $ENV{ZEPHYR_BASE})
+
 # Project name
 project(main)
 # The project version number.
@@ -48,59 +57,6 @@ set(VERSION_MAJOR   0   CACHE STRING "Project major version number.")
 set(VERSION_MINOR   0   CACHE STRING "Project minor version number.")
 set(VERSION_PATCH   1   CACHE STRING "Project patch version number.")
 mark_as_advanced(VERSION_MAJOR VERSION_MINOR VERSION_PATCH)
-
-#------------------
-# Modules Setup
-#------------------
-list(APPEND MODULES_USED
-    sys_module
-    app_loader
-    )
-#-------------------
-# MCU Setup
-#-------------------
-set(MCU STM32F429xx)
-set(MCU_DIR include/STM32F4xx/)
-set(MCU_SPEC  cortex-m4)
-set(FLOAT_SPEC "-mfloat-abi=hard -mfpu=fpv4-sp-d16")
-
-# Dont need to change this if MCU is defined correctly
-# then directly set the STARTUP_FILE and SYSTEM_FILE to the required files
-string(TOLOWER startup_${MCU}.s STARTUP_FILE_NAME)
-
-set(STARTUP_FILE ${MCU_DIR}/Source/Templates/gcc/${STARTUP_FILE_NAME})
-set(SYSTEM_FILE  ${MCU_DIR}/Source/Templates/system_stm32f4xx.c)
-
-# Set the Highspeed external clock value (HSE) in MHz
-set(HSE_VAL 8000000)
-
-# Define the linker script location
-set(KERNEL_LINKER_SCRIPT linker.ld)
-
-#-------------------
-# HAL Setup
-#-------------------
-# Select 1 if STM32 HAL library is to be used. This will add -DUSE_HAL_DRIVER=1 to the CFLAGS
-# If enabled then set the correct path of the HAL Driver folder
-#set(USE_HAL = 1
-#ifeq (1,$(USE_HAL))
-set(HAL_DIR components/STM32F4xx_HAL_Driver)
-#endif
-
-#-------------------
-# RTOS Setup
-#-------------------
-# Path to FreeRTOS Kernel
-set(RTOS_DIR ${PROJECT_SOURCE_DIR}/components/FreeRTOS-Kernel)
-# Modify this to the path where your micrcontroller specific port is
-set(RTOS_DIR_MCU ${RTOS_DIR}/portable/GCC/ARM_CM4F) # For cortex-m4 microcontroller
-set(RTOS_HEAP    ${RTOS_DIR}/portable/MemMang/heap_4.c) # Select which heap implementation to use
-
-#-------------------
-# CMSIS Setup
-#-------------------
-# Set the path to the CMSIS folder
-set(CMSIS_DIR components/CMSIS/CMSIS)
 
 #################### ADVANCED SECTION ###########################
 
@@ -132,7 +88,6 @@ set(CMAKE_ASM_FLAGS " \
 #-------------------
 set(CMAKE_EXE_LINKER_FLAGS " \
 -Wl,-Map=${PROJECT_NAME}.map \
--Wl,--print-memory-usage \
 -Wl,--gc-sections \
 " CACHE INTERNAL "Linker options")
 
@@ -152,317 +107,202 @@ set(CMAKE_CXX_FLAGS_RELEASE "-Os -flto " CACHE INTERNAL "C++ Compiler options fo
 set(CMAKE_ASM_FLAGS_RELEASE "" CACHE INTERNAL "ASM Compiler options for release build type")
 set(CMAKE_EXE_LINKER_FLAGS_RELEASE "-flto " CACHE INTERNAL "Linker options for release build type")
 
-if(CMAKE_CROSSCOMPILING STREQUAL "1")
-    # Control specific options if crosscompiling
-
-    message(STATUS "[INFO] Cross compiling for ${MCU}")
-    message(STATUS "[INFO] Startup file used is ${STARTUP_FILE}")
-
-    # Control ARM Semihosting support
-    if(NOT SEMIHOSTING)
-        set(SEMIHOSTING 1)
-        message(WARNING "[WARN] Semihosting support not specified: Enabling by default")
-    endif()
-
-    #-------------------
-    # General Flags for cross
-    #-------------------
-    string(APPEND OBJECT_GEN_FLAGS " \
-    -mcpu=${MCU_SPEC} \
-    -mthumb \
-    -mthumb-interwork \
-    -mabi=aapcs \
-    ${FLOAT_SPEC} \
-    ")
-
-    #-------------------
-    # CFLAGS for cross
-    #-------------------
-    string(APPEND CMAKE_C_FLAGS " \
-    ${OBJECT_GEN_FLAGS} \
-    ")
-
-    #-------------------
-    # ASMFLAGS for cross
-    #-------------------
-    string(APPEND CMAKE_ASM_FLAGS " \
-    ${OBJECT_GEN_FLAGS} \
-    ")
-
-    #-------------------
-    # LFLAGS for cross
-    #-------------------
-    string(APPEND CMAKE_EXE_LINKER_FLAGS " \
-    ${OBJECT_GEN_FLAGS} \
-    ")
-
-else()
-    # Flags and options to set while compiling natively
-    message(STATUS "[INFO] Compiling natively")
-
-    #-------------------
-    # General Flags for native
-    #-------------------
-    string(APPEND OBJECT_GEN_FLAGS " \
-    --coverage \
-    ")
-
-    #-------------------
-    # CFLAGS for native
-    #-------------------
-    string(APPEND CMAKE_C_FLAGS " \
-    ${OBJECT_GEN_FLAGS} \
-    ")
-
-    #-------------------
-    # ASMFLAGS for native
-    #-------------------
-    string(APPEND CMAKE_ASM_FLAGS " \
-    ${OBJECT_GEN_FLAGS} \
-    ")
-
-    #-------------------
-    # LFLAGS for native
-    #-------------------
-    string(APPEND CMAKE_EXE_LINKER_FLAGS " \
-    ${OBJECT_GEN_FLAGS} \
-    ")
-
+# Control ARM Semihosting support
+if(NOT SEMIHOSTING)
+	set(SEMIHOSTING 1)
+	message(WARNING "[WARN] Semihosting support not specified: Enabling by default")
 endif()
+
+#-------------------
+# General Flags for cross
+#-------------------
+string(APPEND OBJECT_GEN_FLAGS " \
+-mthumb \
+-mthumb-interwork \
+-mabi=aapcs \
+${FLOAT_SPEC} \
+")
+
+#-------------------
+# CFLAGS for cross
+#-------------------
+string(APPEND CMAKE_C_FLAGS " \
+${OBJECT_GEN_FLAGS} \
+")
+
+#-------------------
+# ASMFLAGS for cross
+#-------------------
+string(APPEND CMAKE_ASM_FLAGS " \
+${OBJECT_GEN_FLAGS} \
+")
+
+#-------------------
+# LFLAGS for cross
+#-------------------
+string(APPEND CMAKE_EXE_LINKER_FLAGS " \
+${OBJECT_GEN_FLAGS} \
+")
+
+#-------------------
+# General Flags for native
+#-------------------
+#    string(APPEND OBJECT_GEN_FLAGS " \
+#    --coverage \
+#    ")
 
 # Build the kernel
 if(TARGET_GROUP STREQUAL kernel)
 
-    set(KERNEL 1)
+	set(RKERNEL 1)
 
-    set(LINKER_SCRIPT "${KERNEL_LINKER_SCRIPT}")
-    find_file(LINKER_SCRIPT_PATH
-        NAMES "${LINKER_SCRIPT}"
-        PATHS
-        ${CMAKE_CURRENT_LIST_DIR}
-        )
+	#set(LINKER_SCRIPT "${KERNEL_LINKER_SCRIPT}")
+	#find_file(LINKER_SCRIPT_PATH
+	#    NAMES "${LINKER_SCRIPT}"
+	#    PATHS
+	#    ${CMAKE_CURRENT_LIST_DIR}
+	#    )
 
-    if(DEFINED LINKER_SCRIPT_PATH)
-        message(STATUS "[INFO] Using linker file at ${LINKER_SCRIPT_PATH}")
-        string(APPEND CMAKE_EXE_LINKER_FLAGS "-T${LINKER_SCRIPT_PATH} ")
-    else()
-        message(FATAL_ERROR "[ERRR] Could not find linker script ${LINKER_SCRIPT}")
-    endif()
+	#if(DEFINED LINKER_SCRIPT_PATH)
+	#    message(STATUS "[INFO] Using linker file at ${LINKER_SCRIPT_PATH}")
+	#    string(APPEND CMAKE_EXE_LINKER_FLAGS "-T${LINKER_SCRIPT_PATH} ")
+	#else()
+	#    message(FATAL_ERROR "[ERRR] Could not find linker script ${LINKER_SCRIPT}")
+	#endif()
 
-    if("${SEMIHOSTING}" STREQUAL "1")
-        string(APPEND CMAKE_EXE_LINKER_FLAGS "--specs=rdimon.specs -lc -lrdimon ")
-    else()
-        string(APPEND CMAKE_EXE_LINKER_FLAGS "--specs=nosys.specs ")
-    endif()
+	if("${SEMIHOSTING}" STREQUAL "1")
+		string(APPEND CMAKE_EXE_LINKER_FLAGS "--specs=rdimon.specs -lc -lrdimon ")
+	else()
+		string(APPEND CMAKE_EXE_LINKER_FLAGS "--specs=nosys.specs ")
+	endif()
 
-    #-------------------
-    # Common macros for kernel and its modules
-    #-------------------
-    set(MODULE_COMPILE_DEFS
-        ${MCU}
-        HSE_VALUE=${HSE_VAL}
-        SEMIHOSTING=${SEMIHOSTING}
-        USE_HAL_DRIVER=1
-        KERNEL=${KERNEL}
-        )
-    set(MODULE_LINK_LIBS
-        rtos
-        hal
-        )
-    add_subdirectory(modules)
-    set(EXEC_COMPILE_DEFS
-        ${MODULE_COMPILE_DEFS}
-        )
+	#add_subdirectory(modules)
 
-    ######################################################################
-    # @Target: ${PROJECT_NAME}.elf
-    # @Brief: Build the kernel for the project
-    ######################################################################
+	######################################################################
+	# @Target: Zephyr application
+	# @Brief: Build the kernel for the project
+	######################################################################
 
-    #-------------------
-    # HAL library
-    #-------------------
-    file(GLOB HAL_SRC
-        "${HAL_DIR}/Src/*.c"
-        )
-    add_library(hal STATIC
-        ${HAL_SRC}
-        )
-    target_include_directories(hal
-        PUBLIC
-        ${HAL_DIR}/Inc
-        ${MCU_DIR}/Include
-        ${CMSIS_DIR}/Core/Include
-        PRIVATE
-        ${PROJECT_SOURCE_DIR}/include
-        )
-    target_compile_definitions(hal
-        PUBLIC
-        ${MCU}
-        HSE_VALUE=${HSE_VAL}
-        )
+	#-------------------
+	# Main elf
+	#-------------------
+	file(GLOB MAIN_SRC
+		"src/*.c"
+		)
+	target_include_directories(app
+		PUBLIC
+		${CMAKE_CURRENT_SOURCE_DIR}/include
+		)
+	#target_link_libraries(app
+	#PUBLIC
+	#sys_module
+	#)
+	target_compile_definitions(app
+		PUBLIC
+		${MODULE_COMPILE_DEFS}
+		)
+	target_sources(app
+		PRIVATE
+		${MAIN_SRC}
+		)
 
-    #-------------------
-    # FreeRTOS library
-    #-------------------
-    string(APPEND CMAKE_EXE_LINKER_FLAGS_RELEASE "-Wl,--undefined=vTaskSwitchContext ")
-    file(GLOB RTOS_SRC
-        "${RTOS_DIR}/*.c"
-        "${RTOS_DIR_MCU}/*.c"
-        ${RTOS_HEAP}
-        )
-    add_library(rtos STATIC
-        ${RTOS_SRC}
-        )
-    target_include_directories(rtos
-        PUBLIC
-        ${RTOS_DIR}/include
-        ${RTOS_DIR_MCU}
-        PRIVATE
-        ${PROJECT_SOURCE_DIR}/include
-        )
+	######################################################################
+	# @Target: doc
+	# @Brief: Generate doxygen documentation
+	######################################################################
+	# check if Doxygen is installed
+	find_package(Doxygen)
+	if (DOXYGEN_FOUND)
+		# set input and output files
+		set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile.in)
+		set(DOXYGEN_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
 
-    #-------------------
-    # Main elf
-    #-------------------
-    file(GLOB MAIN_SRC
-        "src/*.c"
-        )
-    set(SOURCES
-        ${MAIN_SRC}
-        ${STARTUP_FILE}
-        ${SYSTEM_FILE}
-        )
-    add_executable(${PROJECT_NAME}.elf
-        ${SOURCES}
-        )
-    objdump(${PROJECT_NAME}.elf)
-    target_include_directories(${PROJECT_NAME}.elf
-        PUBLIC
-        ${PROJECT_SOURCE_DIR}/include
-        )
-    target_link_libraries(${PROJECT_NAME}.elf
-        PUBLIC
-        rtos
-        hal
-        "${MODULES_USED}"
-        )
-    target_compile_definitions(${PROJECT_NAME}.elf
-        PUBLIC
-        ${EXEC_COMPILE_DEFS}
-        )
+		# exclude folders while making documentation
+		# should be separated by spaces
+		set(DOXYGEN_EXCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/components/* ${CMAKE_CURRENT_SOURCE_DIR}/build/* ${CMAKE_CURRENT_SOURCE_DIR}/${MCU_DIR}* ${CMAKE_CURRENT_SOURCE_DIR}/apps/lib")
 
-    ######################################################################
-    # @Target: flash_gdb
-    # @Brief: flash the release/debug elf using gdb
-    ######################################################################
-    flash_gdb(${PROJECT_NAME}.elf)
+		# set mainpage in doxygen
+		set(DOXYGEN_MAIN_PAGE "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
 
-    ######################################################################
-    # @Target: gdb
-    # @Brief: Start gdb client
-    ######################################################################
-    gdb()
+		# request to configure the file
+		configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
+		message("Doxygen build started")
 
-    ######################################################################
-    # @Target: doc
-    # @Brief: Generate doxygen documentation
-    ######################################################################
-    # check if Doxygen is installed
-    find_package(Doxygen)
-    if (DOXYGEN_FOUND)
-        # set input and output files
-        set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile.in)
-        set(DOXYGEN_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
+		# Generate doxygen documentation
+		# And copy to docs folder on project root so github pages can display docs
+		add_custom_target(docs
+			COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
+			COMMAND ${CMAKE_COMMAND} -E copy_directory html ${PROJECT_SOURCE_DIR}/docs/html
+			WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+			COMMENT "Generating API documentation with Doxygen"
+			VERBATIM
+			)
+	else (DOXYGEN_FOUND)
+		message("Doxygen need to be installed to generate the doxygen documentation")
+	endif (DOXYGEN_FOUND)
 
-        # exclude folders while making documentation
-        # should be separated by spaces
-        set(DOXYGEN_EXCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/components/* ${CMAKE_CURRENT_SOURCE_DIR}/build/* ${CMAKE_CURRENT_SOURCE_DIR}/${MCU_DIR}* ${CMAKE_CURRENT_SOURCE_DIR}/apps/lib")
-
-        # set mainpage in doxygen
-        set(DOXYGEN_MAIN_PAGE "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
-
-        # request to configure the file
-        configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
-        message("Doxygen build started")
-
-        # Generate doxygen documentation
-        # And copy to docs folder on project root so github pages can display docs
-        add_custom_target(docs
-            COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
-            COMMAND ${CMAKE_COMMAND} -E copy_directory html ${PROJECT_SOURCE_DIR}/docs/html
-            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-            COMMENT "Generating API documentation with Doxygen"
-            VERBATIM
-            )
-    else (DOXYGEN_FOUND)
-        message("Doxygen need to be installed to generate the doxygen documentation")
-    endif (DOXYGEN_FOUND)
-
-    # Add additional files to the make clean
-    set_property(DIRECTORY PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
-        "${PROJECT_NAME}.map"
-        "${CMAKE_CURRENT_BINARY_DIR}/html"
-        "${CMAKE_CURRENT_BINARY_DIR}/latex"
-        )
+	# Add additional files to the make clean
+	set_property(DIRECTORY PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
+		"${PROJECT_NAME}.map"
+		"${CMAKE_CURRENT_BINARY_DIR}/html"
+		"${CMAKE_CURRENT_BINARY_DIR}/latex"
+		)
 
 
 elseif(TARGET_GROUP STREQUAL userlib)
 
-    message(STATUS "[INFO] Building userlib target group")
-    set(MODULE_COMPILE_DEFS
-        ${MCU}
-        HSE_VALUE=${HSE_VAL}
-        )
-    # Build sys_module without -DKERNEL
-    add_subdirectory(modules/sys_module)
-    # copy the sys_module lib and header files to lib folder for easy distribution
-    add_custom_target(userlib ALL DEPENDS sys_module)
-    add_custom_command(TARGET userlib
-        COMMAND ${CMAKE_COMMAND} -E make_directory lib
-        COMMAND ${CMAKE_COMMAND} -E copy modules/sys_module/libsys_module.a lib
-        COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/modules/sys_module/*.h lib
-        )
+	message(STATUS "[INFO] Building userlib target group")
+	set(MODULE_COMPILE_DEFS
+		)
+	# Build sys_module without -DRKERNEL
+	add_subdirectory(modules/sys_module)
+	# copy the sys_module lib and header files to lib folder for easy distribution
+	add_custom_target(userlib ALL DEPENDS sys_module)
+	add_custom_command(TARGET userlib
+		COMMAND ${CMAKE_COMMAND} -E make_directory lib
+		COMMAND ${CMAKE_COMMAND} -E copy modules/sys_module/libsys_module.a lib
+		COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/modules/sys_module/*.h lib
+		)
 
 elseif(TARGET_GROUP STREQUAL test)
 
-    #-------------------
-    # Common macros for testing modules
-    #-------------------
-    #set(MODULE_COMPILE_DEFS
-    #    ${MCU}
-    #    HSE_VALUE=${HSE_VAL}
-    #    SEMIHOSTING=${SEMIHOSTING}
-    #    USE_HAL_DRIVER=1
-    #    KERNEL=${KERNEL}
-    #    )
-    #set(MODULE_LINK_LIBS
-    #    rtos
-    #    hal
-    #    )
-    add_subdirectory(modules)
+	#-------------------
+	# Common macros for testing modules
+	#-------------------
+	#set(MODULE_COMPILE_DEFS
+	#    ${MCU}
+	#    HSE_VALUE=${HSE_VAL}
+	#    SEMIHOSTING=${SEMIHOSTING}
+	#    USE_HAL_DRIVER=1
+	#    KERNEL=${KERNEL}
+	#    )
+	#set(MODULE_LINK_LIBS
+	#    rtos
+	#    hal
+	#    )
+	add_subdirectory(modules)
 
-    add_library(unity STATIC
-        components/unity/unity.c
-        )
+	add_library(unity STATIC
+		components/unity/unity.c
+		)
 
-    target_include_directories(unity PUBLIC
-        components/unity/
-        )
+	target_include_directories(unity PUBLIC
+		components/unity/
+		)
 
-    enable_testing()
-    include(CTest)
-    add_subdirectory(test)
+	enable_testing()
+	include(CTest)
+	add_subdirectory(test)
 
-    set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
-    include(CodeCoverage)
-    setup_target_for_coverage_lcov(
-        NAME coverage
-        EXCLUDE "/usr/include/x86_64-linux-gnu/*" "components/unity/*"
-        EXECUTABLE ctest -VV
-        )
+	set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
+	include(CodeCoverage)
+	setup_target_for_coverage_lcov(
+		NAME coverage
+		EXCLUDE "/usr/include/x86_64-linux-gnu/*" "components/unity/*"
+		EXECUTABLE ctest -VV
+		)
 else()
-    message(FATAL_ERROR "Given TARGET_GROUP unknown")
+	message(FATAL_ERROR "Given TARGET_GROUP unknown")
 endif()
 
 # Unset all cache

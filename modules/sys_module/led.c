@@ -31,24 +31,93 @@
 */
 
 
-#ifdef KERNEL
+#ifdef RKERNEL
+
+#include <zephyr.h>
+#include <device.h>
+#include <devicetree.h>
+#include <drivers/gpio.h>
 
 #include "utilities.h"
-#include "FreeRTOS.h"
-#include "task.h"
-#include "queue.h"
-#include "stm32f4xx_hal.h"
-
 #include "led.h"
 
-uint8_t SetLed(uint8_t Led_Num, uint8_t Led_State) {
+#define LED0_NODE DT_ALIAS(led0)
+#define LED1_NODE DT_ALIAS(led1)
+
+#if DT_HAS_NODE(LED0_NODE)
+    #define LED0_DEV	DT_GPIO_LABEL(LED0_NODE, gpios)
+    #define LED0_PIN	DT_GPIO_PIN(LED0_NODE, gpios)
+    #if DT_PHA_HAS_CELL(LED0_NODE, gpios, flags)
+        #define LED0_FLAGS	DT_GPIO_FLAGS(LED0_NODE, gpios)
+    #endif
+
+    #ifndef LED0_FLAGS
+        #define LED0_FLAGS	0
+    #endif
+
+#else
+    #error "Unsupported board: led0 is not aliased in device tree."
+#endif
+
+#if DT_HAS_NODE(LED1_NODE)
+    #define LED1_DEV	DT_GPIO_LABEL(LED1_NODE, gpios)
+    #define LED1_PIN	DT_GPIO_PIN(LED1_NODE, gpios)
+    #if DT_PHA_HAS_CELL(LED1_NODE, gpios, flags)
+        #define LED1_FLAGS	DT_GPIO_FLAGS(LED1_NODE, gpios)
+    #endif
+
+    #ifndef LED1_FLAGS
+        #define FLAGS	0
+    #endif
+
+#endif
+
+struct device *dev;
+
+int8_t initLeds(void) {
+    // Initialize GPIO and LED
+    int ret;
+    dev = device_get_binding(LED0_DEV);
+    if (dev == NULL) {
+        return -1;
+    }
+    ret = gpio_pin_configure(dev, LED0_PIN, GPIO_OUTPUT_INACTIVE | LED0_FLAGS);
+    if (ret < 0) {
+        return -1;
+    }
+#if DT_HAS_NODE(LED1_NODE)
+    dev = device_get_binding(LED1_DEV);
+    if (dev == NULL) {
+        return -1;
+    }
+    ret = gpio_pin_configure(dev, LED1_PIN, GPIO_OUTPUT_INACTIVE | LED1_FLAGS);
+    if (ret < 0) {
+        return -1;
+    }
+#endif
+    return 0;
+}
+
+int8_t SetLed(uint8_t Led_Num, uint8_t Led_State) {
     switch(Led_Num) {
+        case 0:
+            dev = device_get_binding(LED0_DEV);
+            if (dev == NULL) {
+                return -1;
+            }
+            gpio_pin_set(dev, LED0_PIN, (int)Led_State);
+            break;
+#if DT_HAS_NODE(LED1_NODE)
         case 1:
-            HAL_GPIO_WritePin(GPIOG, GPIO_PIN_13, Led_State);
+            dev = device_get_binding(LED1_DEV);
+            if (dev == NULL) {
+                return -1;
+            }
+            gpio_pin_set(dev, LED1_PIN, (int)Led_State);
             break;
-        case 2:
-            HAL_GPIO_WritePin(GPIOG, GPIO_PIN_14, Led_State);
-            break;
+#endif
+		default:
+			return -1;
     }
     return 0;
 }

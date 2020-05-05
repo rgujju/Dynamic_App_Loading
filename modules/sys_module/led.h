@@ -30,12 +30,13 @@
  * SOFTWARE.
 */
 
+
 #include <stdint.h>
 
+/** LED 0 */
+#define LED0 0
 /** LED 1 */
 #define LED1 1
-/** LED 2 */
-#define LED2 2
 /** LED_ON state */
 #define LED_ON 1
 /** LED_OFF state */
@@ -54,4 +55,7 @@
  *  @retval 0 
  *
 */
-uint8_t SetLed(uint8_t Led_Num, uint8_t Led_State);
+int8_t SetLed(uint8_t Led_Num, uint8_t Led_State);
+
+
+int8_t initLeds(void);

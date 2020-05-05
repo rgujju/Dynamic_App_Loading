@@ -66,25 +66,3 @@ extern void initialise_monitor_handles(void);
 #define INFO_CUST_C(fmt...) if(INFO_EN){printf(fmt);}
 #define INFO_CUST_E(fmt...) if(INFO_EN){printf(fmt "\n");}
 #endif /* SEMIHOSTING */
-
-// Exception handling
-/** Error_Handler is called by STM32 HAL */
-#define Error_Handler    FaultHandler
-/** @brief Automating exception analysis
- *         https://interrupt.memfault.com/blog/cortex-m-fault-debug#automating-the-analysis
- */
-void FaultHandler();
-typedef struct __attribute__((packed)) context_state_frame {
-    uint32_t r0;
-    uint32_t r1;
-    uint32_t r2;
-    uint32_t r3;
-    uint32_t r12;
-    uint32_t lr;
-    uint32_t return_address;
-    uint32_t xpsr;
-
-} sContextStateFrame;
-
-
-#define DUMMY_SYS_ADDR 0xA5A5A5A5

@@ -33,7 +33,7 @@
 
 #pragma once
 
-#include "led.h"
+#include "sys_module/led.h"
 
 /**
     @brief  This struct contains APIs for calling system functions
@@ -48,11 +48,13 @@
                 kernel at load time in the LoadApp API
 */
 typedef struct {
-    uint8_t (*SetLed)(uint8_t Led_Num, uint8_t Led_State);
+    int8_t (*SetLed)(uint8_t Led_Num, uint8_t Led_State);
 }sys_struct;
 
-#ifdef KERNEL
-    sys_struct sys;
+#if RKERNEL == 1
+    extern sys_struct sys;
+	#define DUMMY_SYS_ADDR 0xA5A5A5A5
 #else
-   const  sys_struct* sys;
+	extern const  sys_struct* sys;
 #endif
+

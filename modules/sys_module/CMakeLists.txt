@@ -22,31 +22,25 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-set(MODULE_NAME sys_module)
-
 file(GLOB SOURCES ./*.c)
 
-add_library(${MODULE_NAME} STATIC
-    ${SOURCES}
-    )
-
-target_include_directories(${MODULE_NAME}
-    PUBLIC
-    ${CMAKE_CURRENT_LIST_DIR}
-    PRIVATE
-    ${PROJECT_SOURCE_DIR}/include
-    )
-
-if(MODULE_LINK_LIBS)
-    target_link_libraries(${MODULE_NAME}
-        PRIVATE
-        ${MODULE_LINK_LIBS}
-        )
-endif()
-
+zephyr_include_directories(
+		${CMAKE_CURRENT_LIST_DIR}/..
+		${CMAKE_SOURCE_DIR}/include
+		)
+zephyr_library()
+zephyr_library_sources(
+	${SOURCES}
+	)
 if(MODULE_COMPILE_DEFS)
-    target_compile_definitions(${MODULE_NAME}
-        PRIVATE
-        ${MODULE_COMPILE_DEFS}
-        )
+	zephyr_compile_definitions(
+		${MODULE_COMPILE_DEFS}
+		)
 endif()
+
+#if(MODULE_LINK_LIBS)
+#    target_link_libraries(${MODULE_NAME}
+#        PRIVATE
+#        ${MODULE_LINK_LIBS}
+#        )
+#endif()
