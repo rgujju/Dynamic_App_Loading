@@ -44,9 +44,7 @@
 /** Enable error prints */
 #define ERRR_EN 1
 
-#if defined(SEMIHOSTING) || defined(__x86_64__)
-extern void initialise_monitor_handles(void);
-// TODO: Handle printf if not semihosting
+//#if defined(__x86_64__)
 /** Print as debug output */
 #define DBUG(fmt...) if(DBUG_EN){printf("[DBUG] " fmt); printf("\n");}
 /** Print as information output */
@@ -65,4 +63,4 @@ extern void initialise_monitor_handles(void);
 #define INFO_CUST_S(fmt...) if(INFO_EN){printf("[INFO] " fmt);}
 #define INFO_CUST_C(fmt...) if(INFO_EN){printf(fmt);}
 #define INFO_CUST_E(fmt...) if(INFO_EN){printf(fmt "\n");}
-#endif /* SEMIHOSTING */
+//#endif /* __x86_64__ */

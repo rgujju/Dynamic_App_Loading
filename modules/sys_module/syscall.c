@@ -33,7 +33,7 @@
 #include "utilities.h"
 #include "sys_module/syscall.h"
 
-#if RKERNEL == 1
+#ifdef RKERNEL
 
 sys_struct sys = {
     .SetLed = SetLed,

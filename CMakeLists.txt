@@ -24,41 +24,11 @@
 
 cmake_minimum_required(VERSION 3.11.1)
 
-#################### CONFIGURABLE SECTION ###########################
-#------------------
-# Modules Setup
-#------------------
-list(APPEND ZEPHYR_EXTRA_MODULES
-	${CMAKE_CURRENT_SOURCE_DIR}/modules/sys_module
-	${CMAKE_CURRENT_SOURCE_DIR}/modules/app_loader
-	)
-
-#-------------------
-# Common macros for kernel and its modules
-#-------------------
-set(MODULE_COMPILE_DEFS
-	SEMIHOSTING=1
-	RKERNEL=1
-	)
-
-#list(APPEND SYSCALL_INCLUDE_DIRS
-#	${CMAKE_CURRENT_SOURCE_DIR}/modules/sys_module/zephyr
-#	)
-
-# Define the linker script location
-#set(KERNEL_LINKER_SCRIPT linker.ld)
-
-find_package(Zephyr HINTS $ENV{ZEPHYR_BASE})
-
-# Project name
-project(main)
+set(PROJECT_NAME main CACHE STRING "Name of the project")
 # The project version number.
-set(VERSION_MAJOR   0   CACHE STRING "Project major version number.")
-set(VERSION_MINOR   0   CACHE STRING "Project minor version number.")
-set(VERSION_PATCH   1   CACHE STRING "Project patch version number.")
-mark_as_advanced(VERSION_MAJOR VERSION_MINOR VERSION_PATCH)
-
-#################### ADVANCED SECTION ###########################
+set(VERSION_MAJOR   0   CACHE STRING "Project major version number")
+set(VERSION_MINOR   0   CACHE STRING "Project minor version number")
+set(VERSION_PATCH   1   CACHE STRING "Project patch version number")
 
 #-------------------
 # General Flags
@@ -69,12 +39,6 @@ set(OBJECT_GEN_FLAGS " \
 -ffunction-sections -fdata-sections \
 -fomit-frame-pointer \
 " CACHE INTERNAL "Common flags for C/CXX/ASM/Linker")
-
-#-------------------
-# CFLAGS
-#-------------------
-set(CMAKE_C_FLAGS " \
-" CACHE INTERNAL "C Compiler options")
 
 #-------------------
 # ASMFLAGS for cross
@@ -107,43 +71,6 @@ set(CMAKE_CXX_FLAGS_RELEASE "-Os -flto " CACHE INTERNAL "C++ Compiler options fo
 set(CMAKE_ASM_FLAGS_RELEASE "" CACHE INTERNAL "ASM Compiler options for release build type")
 set(CMAKE_EXE_LINKER_FLAGS_RELEASE "-flto " CACHE INTERNAL "Linker options for release build type")
 
-# Control ARM Semihosting support
-if(NOT SEMIHOSTING)
-	set(SEMIHOSTING 1)
-	message(WARNING "[WARN] Semihosting support not specified: Enabling by default")
-endif()
-
-#-------------------
-# General Flags for cross
-#-------------------
-string(APPEND OBJECT_GEN_FLAGS " \
--mthumb \
--mthumb-interwork \
--mabi=aapcs \
-${FLOAT_SPEC} \
-")
-
-#-------------------
-# CFLAGS for cross
-#-------------------
-string(APPEND CMAKE_C_FLAGS " \
-${OBJECT_GEN_FLAGS} \
-")
-
-#-------------------
-# ASMFLAGS for cross
-#-------------------
-string(APPEND CMAKE_ASM_FLAGS " \
-${OBJECT_GEN_FLAGS} \
-")
-
-#-------------------
-# LFLAGS for cross
-#-------------------
-string(APPEND CMAKE_EXE_LINKER_FLAGS " \
-${OBJECT_GEN_FLAGS} \
-")
-
 #-------------------
 # General Flags for native
 #-------------------
@@ -153,8 +80,48 @@ ${OBJECT_GEN_FLAGS} \
 
 # Build the kernel
 if(TARGET_GROUP STREQUAL kernel)
+	message(STATUS "[INFO] Building kernel target group")
 
-	set(RKERNEL 1)
+	# Control building kernel or userlib
+	if(USERLIB)
+		#set(RKERNEL 0)
+	else()
+		set(RKERNEL RKERNEL=1)
+	endif()
+
+	message(STATUS "[INFO] RKERNEL is: ${RKERNEL}")
+
+	#------------------
+	# Modules Setup
+	#------------------
+	list(APPEND ZEPHYR_EXTRA_MODULES
+		${CMAKE_CURRENT_SOURCE_DIR}/modules/sys_module
+		${CMAKE_CURRENT_SOURCE_DIR}/modules/app_loader
+		)
+
+	#-------------------
+	# Common macros for kernel and its modules
+	#-------------------
+	set(COMPILE_DEFS
+		${RKERNEL}
+		)
+
+	set(MODULE_COMPILE_DEFS
+		${COMPILE_DEFS}
+		)
+
+	#list(APPEND SYSCALL_INCLUDE_DIRS
+	#	${CMAKE_CURRENT_SOURCE_DIR}/modules/sys_module/zephyr
+	#	)
+
+	#find_package(Zephyr HINTS $ENV{ZEPHYR_BASE})
+	include($ENV{ZEPHYR_BASE}/cmake/app/boilerplate.cmake NO_POLICY_SCOPE)
+
+	project(${PROJECT_NAME})
+	mark_as_advanced(VERSION_MAJOR VERSION_MINOR VERSION_PATCH)
+
+	# Define the linker script location
+	#set(KERNEL_LINKER_SCRIPT linker.ld)
 
 	#set(LINKER_SCRIPT "${KERNEL_LINKER_SCRIPT}")
 	#find_file(LINKER_SCRIPT_PATH
@@ -169,14 +136,6 @@ if(TARGET_GROUP STREQUAL kernel)
 	#else()
 	#    message(FATAL_ERROR "[ERRR] Could not find linker script ${LINKER_SCRIPT}")
 	#endif()
-
-	if("${SEMIHOSTING}" STREQUAL "1")
-		string(APPEND CMAKE_EXE_LINKER_FLAGS "--specs=rdimon.specs -lc -lrdimon ")
-	else()
-		string(APPEND CMAKE_EXE_LINKER_FLAGS "--specs=nosys.specs ")
-	endif()
-
-	#add_subdirectory(modules)
 
 	######################################################################
 	# @Target: Zephyr application
@@ -199,7 +158,7 @@ if(TARGET_GROUP STREQUAL kernel)
 	#)
 	target_compile_definitions(app
 		PUBLIC
-		${MODULE_COMPILE_DEFS}
+		${COMPILE_DEFS}
 		)
 	target_sources(app
 		PRIVATE
@@ -248,20 +207,34 @@ if(TARGET_GROUP STREQUAL kernel)
 		"${CMAKE_CURRENT_BINARY_DIR}/latex"
 		)
 
+	#elseif(TARGET_GROUP STREQUAL userlib)
 
-elseif(TARGET_GROUP STREQUAL userlib)
+	#message(STATUS "[INFO] Building userlib target group")
+	#------------------
+	# Modules Setup
+	#------------------
+	# Build sys_module without -DRKERNEL, this will build the
+	# jumptable pointer so app can call APIs in the kernel
+	#list(APPEND ZEPHYR_EXTRA_MODULES
+	#    ${CMAKE_CURRENT_SOURCE_DIR}/modules/sys_module
+	#    )
 
-	message(STATUS "[INFO] Building userlib target group")
-	set(MODULE_COMPILE_DEFS
-		)
-	# Build sys_module without -DRKERNEL
-	add_subdirectory(modules/sys_module)
+	#set(MODULE_COMPILE_DEFS
+	#    )
+
+	#list(APPEND SYSCALL_INCLUDE_DIRS
+	#	${CMAKE_CURRENT_SOURCE_DIR}/modules/sys_module/zephyr
+	#	)
+
+	#find_package(Zephyr HINTS $ENV{ZEPHYR_BASE})
+	#include($ENV{ZEPHYR_BASE}/cmake/app/boilerplate.cmake NO_POLICY_SCOPE)
+
 	# copy the sys_module lib and header files to lib folder for easy distribution
-	add_custom_target(userlib ALL DEPENDS sys_module)
+	add_custom_target(userlib DEPENDS sys_module)
 	add_custom_command(TARGET userlib
-		COMMAND ${CMAKE_COMMAND} -E make_directory lib
-		COMMAND ${CMAKE_COMMAND} -E copy modules/sys_module/libsys_module.a lib
-		COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/modules/sys_module/*.h lib
+		COMMAND ${CMAKE_COMMAND} -E make_directory userlib
+		COMMAND ${CMAKE_COMMAND} -E copy modules/sys_module/libsys_module.a userlib
+		COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/modules/sys_module/*.h userlib
 		)
 
 elseif(TARGET_GROUP STREQUAL test)
@@ -272,8 +245,6 @@ elseif(TARGET_GROUP STREQUAL test)
 	#set(MODULE_COMPILE_DEFS
 	#    ${MCU}
 	#    HSE_VALUE=${HSE_VAL}
-	#    SEMIHOSTING=${SEMIHOSTING}
-	#    USE_HAL_DRIVER=1
 	#    KERNEL=${KERNEL}
 	#    )
 	#set(MODULE_LINK_LIBS
@@ -306,7 +277,5 @@ else()
 endif()
 
 # Unset all cache
-unset(SEMIHOSTING)
-unset(CMAKE_TOOLCHAIN_FILE)
 unset(CMAKE_BUILD_TYPE)
 

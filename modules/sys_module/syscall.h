@@ -51,9 +51,10 @@ typedef struct {
     int8_t (*SetLed)(uint8_t Led_Num, uint8_t Led_State);
 }sys_struct;
 
-#if RKERNEL == 1
+#define DUMMY_SYS_ADDR 0xA5A5A5A5
+
+#ifdef RKERNEL
     extern sys_struct sys;
-	#define DUMMY_SYS_ADDR 0xA5A5A5A5
 #else
 	extern const  sys_struct* sys;
 #endif

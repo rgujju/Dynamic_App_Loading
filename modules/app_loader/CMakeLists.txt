@@ -22,13 +22,15 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+set(MODULE_NAME app_loader)
+
 file(GLOB SOURCES ./*.c)
 
 zephyr_include_directories(
 		${CMAKE_CURRENT_LIST_DIR}/..
 		${CMAKE_SOURCE_DIR}/include
 		)
-zephyr_library()
+zephyr_library_named(${MODULE_NAME})
 zephyr_library_sources(
 	${SOURCES}
 	)
