@@ -73,7 +73,7 @@ int8_t LoadApp(const uint8_t* tinf_img) {
         }
         // app_stack_base is the address of the base of the stack used by 
         // the rtos task
-        uint32_t* app_stack_base = app_data_base+app_data_size;
+        //uint32_t* app_stack_base = app_data_base+app_data_size;
         // app_got_base is the value which will get loaded to r9
         // This is address of the base of GOT which will actually be used
         // by the app for global data accesses

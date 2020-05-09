@@ -28,7 +28,7 @@ file(GLOB SOURCES ./*.c)
 
 zephyr_include_directories(
 		${CMAKE_CURRENT_LIST_DIR}/..
-		${CMAKE_SOURCE_DIR}/include
+        ${PROJECT_BASE}/include
 		)
 zephyr_library_named(${MODULE_NAME})
 zephyr_library_sources(

@@ -64,3 +64,5 @@
 #define INFO_CUST_C(fmt...) if(INFO_EN){printf(fmt);}
 #define INFO_CUST_E(fmt...) if(INFO_EN){printf(fmt "\n");}
 //#endif /* __x86_64__ */
+
+uint8_t add(uint8_t a, uint8_t b);

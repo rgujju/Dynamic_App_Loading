@@ -1,0 +1,7 @@
+tests:
+    test.simple_module:
+        extra_args: CONF_FILE="../../prj.conf"
+        extra_configs:
+            - CONFIG_ZTEST=y
+        platform_whitelist: native_posix
+        tags: simple_module
