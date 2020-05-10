@@ -24,6 +24,7 @@
 
 
 cmake_minimum_required(VERSION 3.11.1)
+# TODO: Add support for building directly through zephyr by adding the -DBOARD flag
 #-----------------------------
 # Compiler and generic options
 #-----------------------------
