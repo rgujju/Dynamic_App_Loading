@@ -16,6 +16,7 @@ SECTIONS
     .text :
     {
         *(.AppStart)
+        *(.text.startup.main)
         *(.text.main)
         *(.text*)
         *(.glue_7)         /* glue arm to thumb code */

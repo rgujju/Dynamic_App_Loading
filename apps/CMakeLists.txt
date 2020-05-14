@@ -30,6 +30,7 @@ cmake_minimum_required(VERSION 3.11.1)
 #-----------------------------
 set(ZEPHYR_SDK_INSTALL_DIR $ENV{ZEPHYR_SDK_INSTALL_DIR})
 set(CROSS_TOOLCHAIN ${ZEPHYR_SDK_INSTALL_DIR}/arm-zephyr-eabi/bin/arm-zephyr-eabi-)
+#set(CROSS_TOOLCHAIN arm-none-eabi-)
 set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_PROCESSOR arm)
 set(CMAKE_CROSSCOMPILING 1)
@@ -48,7 +49,7 @@ set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
 
 enable_language(C ASM)
 # Project name
-project(apps)
+project(app)
 
 ## These values should be the same in kernel CMakeLists.txt file
 set(MCU STM32F429xx)
@@ -104,10 +105,10 @@ set(CMAKE_EXE_LINKER_FLAGS " \
 #------------------
 # Release Flags
 #-----------------
-#set(CMAKE_C_FLAGS_RELEASE "-Os " CACHE INTERNAL "C Compiler options for release build type")
-#set(CMAKE_CXX_FLAGS_RELEASE "-Os " CACHE INTERNAL "C++ Compiler options for release build type")
-#set(CMAKE_ASM_FLAGS_RELEASE "" CACHE INTERNAL "ASM Compiler options for release build type")
-#set(CMAKE_EXE_LINKER_FLAGS_RELEASE " " CACHE INTERNAL "Linker options for release build type")
+set(CMAKE_C_FLAGS_RELEASE "-O3 " CACHE INTERNAL "C Compiler options for release build type")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 " CACHE INTERNAL "C++ Compiler options for release build type")
+set(CMAKE_ASM_FLAGS_RELEASE "" CACHE INTERNAL "ASM Compiler options for release build type")
+set(CMAKE_EXE_LINKER_FLAGS_RELEASE " " CACHE INTERNAL "Linker options for release build type")
 
 #------------------
 # Position Independent Code Flags
