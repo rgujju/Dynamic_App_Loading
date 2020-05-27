@@ -46,23 +46,23 @@
 
 //#if defined(__x86_64__)
 /** Print as debug output */
-#define DBUG(fmt...) if(DBUG_EN){printf("[DBUG] " fmt); printf("\n");}
+#define DBUG(fmt...) if(DBUG_EN){printk("[DBUG] " fmt); printk("\n");}
 /** Print as information output */
-#define INFO(fmt...) if(INFO_EN){printf("[INFO] " fmt); printf("\n");}
+#define INFO(fmt...) if(INFO_EN){printk("[INFO] " fmt); printk("\n");}
 /** Print as warning output */
-#define WARN(fmt...) if(WARN_EN){printf("[WARN] " fmt); printf("\n");}
+#define WARN(fmt...) if(WARN_EN){printk("[WARN] " fmt); printk("\n");}
 /** Print as error output */
-#define ERRR(fmt...) if(ERRR_EN){printf("[ERRR] " fmt); printf("\n");}
+#define ERRR(fmt...) if(ERRR_EN){printk("[ERRR] " fmt); printk("\n");}
 
 /** Print start part of the debug output. This is used for printing in loops */
-#define DBUG_CUST_S(fmt...) if(DBUG_EN){printf("[DBUG] " fmt);}
-#define DBUG_CUST_C(fmt...) if(DBUG_EN){printf(fmt);}
-#define DBUG_CUST_E(fmt...) if(DBUG_EN){printf(fmt "\n");}
+#define DBUG_CUST_S(fmt...) if(DBUG_EN){printk("[DBUG] " fmt);}
+#define DBUG_CUST_C(fmt...) if(DBUG_EN){printk(fmt);}
+#define DBUG_CUST_E(fmt...) if(DBUG_EN){printk(fmt "\n");}
 
 /** Print start part of information output. This is used for printing in loops. */
-#define INFO_CUST_S(fmt...) if(INFO_EN){printf("[INFO] " fmt);}
-#define INFO_CUST_C(fmt...) if(INFO_EN){printf(fmt);}
-#define INFO_CUST_E(fmt...) if(INFO_EN){printf(fmt "\n");}
+#define INFO_CUST_S(fmt...) if(INFO_EN){printk("[INFO] " fmt);}
+#define INFO_CUST_C(fmt...) if(INFO_EN){printk(fmt);}
+#define INFO_CUST_E(fmt...) if(INFO_EN){printk(fmt "\n");}
 //#endif /* __x86_64__ */
 
 uint8_t add(uint8_t a, uint8_t b);

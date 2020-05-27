@@ -44,13 +44,7 @@
 #include "blinky_tinf.h"
 
 int main ( void ) {
-#if SEMIHOSTING
-    //initialise_monitor_handles();
-    //setbuf(stdout, NULL);
-    //~ setvbuf(stdout, NULL, _IONBF, 0);
-    INFO("Main program start");
-#endif
-	
+
 	initLeds();
     // Load the app defined in blinky_tinf.h
     if(LoadApp(app)<0){
@@ -61,8 +55,8 @@ int main ( void ) {
     uint8_t led_ret = sys.SetLed(0, LED_ON);
 	DBUG("Return value of SetLed = %d", led_ret);
     
-    while (1) {
-    }
+    //while (1) {
+    //}
     return 0;
 }
 

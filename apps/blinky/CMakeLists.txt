@@ -24,13 +24,25 @@
 
 
 cmake_minimum_required(VERSION 3.11.1)
+set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
+#-----------------------------
+# Configuration
+#-----------------------------
 # TODO: Add support for building directly through zephyr by adding the -DBOARD flag
-#-----------------------------
-# Compiler and generic options
-#-----------------------------
 set(ZEPHYR_SDK_INSTALL_DIR $ENV{ZEPHYR_SDK_INSTALL_DIR})
 set(CROSS_TOOLCHAIN ${ZEPHYR_SDK_INSTALL_DIR}/arm-zephyr-eabi/bin/arm-zephyr-eabi-)
 #set(CROSS_TOOLCHAIN arm-none-eabi-)
+# These values should be the same in kernel CMakeLists.txt file
+set(MCU STM32F429xx)
+set(MCU_SPEC  cortex-m4)
+#~ set(FLOAT_SPEC "-mfloat-abi=hard -mfpu=fpv4-sp-d16") #TODO: Add support for fpu in the kernel as well.
+set(APP_NAME blinky)
+set(APP_COMPILE_FLAGS )
+set(APP_SDK_ROOT /home/rohit/Documents/STM32/STM32-Dynamic-Linking/apps/)
+
+#-----------------------------
+# Compiler and generic options
+#-----------------------------
 set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_PROCESSOR arm)
 set(CMAKE_CROSSCOMPILING 1)
@@ -45,18 +57,9 @@ set(CMAKE_C_GDB ${CROSS_TOOLCHAIN}gdb-py CACHE INTERNAL "Debugger")
 set(CMAKE_AR ${CROSS_TOOLCHAIN}gcc-ar CACHE INTERNAL "Assembler")
 set(CMAKE_RANLIB ${CROSS_TOOLCHAIN}gcc-ranlib CACHE INTERNAL "Ranlib")
 
-set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
-
 enable_language(C ASM)
 # Project name
-project(app)
-
-## These values should be the same in kernel CMakeLists.txt file
-set(MCU STM32F429xx)
-set(MCU_SPEC  cortex-m4)
-#~ set(FLOAT_SPEC "-mfloat-abi=hard -mfpu=fpv4-sp-d16") #TODO: Add support for fpu in the kernel as well.
-
-set(APP_LINKER_SCRIPT app_base.ld)
+project(${APP_NAME})
 
 #-------------------
 # General Flags
@@ -118,7 +121,7 @@ string(APPEND PIC_FLAGS "-fpic -msingle-pic-base -mpic-register=r9 -mno-pic-data
 
 
 message(STATUS "[INFO] Cross compiling for ${MCU}")
-message(STATUS "[INFO] Building Apps")
+message(STATUS "[INFO] Building App ${APP_NAME}")
 
 #-------------------
 # General Flags for cross
@@ -157,70 +160,36 @@ string(APPEND CMAKE_EXE_LINKER_FLAGS " \
 # @Brief: build the app
 ######################################################################
 
-# Fetch the linker script for app
-set(LINKER_SCRIPT "${APP_LINKER_SCRIPT}")
-find_file(LINKER_SCRIPT_PATH
-    NAMES "${LINKER_SCRIPT}"
-    PATHS
+set(APP_LINKER_SCRIPT ${APP_SDK_ROOT}/app_base.ld)
+string(APPEND CMAKE_EXE_LINKER_FLAGS "-T${APP_LINKER_SCRIPT} ")
+
+# fetch app sources
+file(GLOB APP_SOURCES ./*.c)
+
+# Add executable target
+add_executable(${APP_NAME}.elf
+    ${APP_SDK_ROOT}/app_startup.s
+    ${APP_SOURCES}
+    )
+# Generate disassembly
+#~ objdump(${APP_NAME}.elf)
+
+target_include_directories(${APP_NAME}.elf
+    PUBLIC
     ${CMAKE_CURRENT_LIST_DIR}
+    ${APP_SDK_ROOT}/lib
     )
 
-if(${LINKER_SCRIPT_PATH} STREQUAL LINKER_SCRIPT_PATH-NOTFOUND)
-    message(FATAL_ERROR "[ERRR] Could not find linker script ${LINKER_SCRIPT}")
+target_link_libraries(${APP_NAME}.elf
+    PRIVATE
+    ${APP_SDK_ROOT}/lib/libsys_module.a
+    )
+
+if(APP_COMPILE_FLAGS STREQUAL " ")
 else()
-    message(STATUS "[INFO] Using linker file at ${LINKER_SCRIPT_PATH}")
-    string(APPEND CMAKE_EXE_LINKER_FLAGS "-T${LINKER_SCRIPT_PATH} ")
-endif()
-
-# Add new apps like this
-list(APPEND APPS_NAMES "blinky")
-list(APPEND APPS_COMPILE_FLAGS " ")
-
-# Declare all app targets
-list(LENGTH APP_NAMES APP_COUNT)
-math(EXPR P_APP_COUNT "${APP_COUNT} + 1")
-message(STATUS "[INFO] Adding ${P_APP_COUNT} apps")
-#math(EXPR APP_COUNT "${APP_COUNT} - 1")
-foreach(i RANGE ${APP_COUNT})
-    list(GET APPS_NAMES ${i} APP_NAME)
-    list(GET APPS_COMPILE_FLAGS ${i} APP_COMPILE_FLAGS)
-
-    message(STATUS "[INFO] Adding app ${APP_NAME} with compile flags ${APP_COMPILE_FLAGS}")
-
-    # fetch app sources
-    file(GLOB APP_SOURCES ${APP_NAME}/*.c)
-
-    # Add executable target
-    add_executable(${APP_NAME}.elf
-        ${PROJECT_SOURCE_DIR}/app_startup.s
-        ${APP_SOURCES}
-        )
-    # Generate disassembly
-    #~ objdump(${APP_NAME}.elf)
-
-    target_include_directories(${APP_NAME}.elf
+    target_compile_definitions(${APP_NAME}.elf
         PUBLIC
-        ${CMAKE_CURRENT_LIST_DIR}/${APP_NAME}
-        ${CMAKE_CURRENT_LIST_DIR}/lib
+        ${APP_COMPILE_FLAGS}
         )
-
-    target_link_libraries(${APP_NAME}.elf
-        PRIVATE
-        ${CMAKE_CURRENT_LIST_DIR}/lib/libsys_module.a
-        )
-
-    if(APP_COMPILE_FLAGS STREQUAL " ")
-    else()
-        target_compile_definitions(${APP_NAME}.elf
-            PUBLIC
-            ${APP_COMPILE_FLAGS}
-            )
-    endif()
-endforeach()
-
-######################################################################
-# @Target: gdb
-# @Brief: Start gdb client
-######################################################################
-#~ gdb()
+endif()
 
