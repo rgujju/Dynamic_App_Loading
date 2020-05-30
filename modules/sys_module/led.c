@@ -42,10 +42,7 @@
 #include "led.h"
 
 #define LED0_NODE DT_ALIAS(led0)
-#define LED1_NODE DT_ALIAS(led1)
-
-/*
-#if DT_HAS_NODE(LED0_NODE)
+#if DT_NODE_HAS_STATUS(LED0_NODE, okay)
     #define LED0_DEV	DT_GPIO_LABEL(LED0_NODE, gpios)
     #define LED0_PIN	DT_GPIO_PIN(LED0_NODE, gpios)
     #if DT_PHA_HAS_CELL(LED0_NODE, gpios, flags)
@@ -60,7 +57,8 @@
     #error "Unsupported board: led0 is not aliased in device tree."
 #endif
 
-#if DT_HAS_NODE(LED1_NODE)
+#define LED1_NODE DT_ALIAS(led1)
+#if DT_NODE_HAS_STATUS(LED1_NODE, okay)
     #define LED1_DEV	DT_GPIO_LABEL(LED1_NODE, gpios)
     #define LED1_PIN	DT_GPIO_PIN(LED1_NODE, gpios)
     #if DT_PHA_HAS_CELL(LED1_NODE, gpios, flags)
@@ -70,33 +68,10 @@
     #ifndef LED1_FLAGS
         #define LED1_FLAGS	0
     #endif
-
-#endif
-*/
-
-
-#ifdef DT_ALIAS_LED0_GPIOS_CONTROLLER
-	#define LED0_DEV	DT_ALIAS_LED0_GPIOS_CONTROLLER
-	#define LED0_PIN	DT_ALIAS_LED0_GPIOS_PIN
-
-    #ifndef LED0_FLAGS
-        #define LED0_FLAGS	0
-    #endif
 #else
-	#error "Unsupported board: led0 devicetree alias is not defined"
+    #error "Unsupported board: led1 is not aliased in device tree."
 #endif
 
-#ifdef DT_ALIAS_LED1_GPIOS_CONTROLLER
-	#define LED1_DEV	DT_ALIAS_LED1_GPIOS_CONTROLLER
-	#define LED1_PIN	DT_ALIAS_LED1_GPIOS_PIN
-
-    #ifndef LED1_FLAGS
-        #define LED1_FLAGS	0
-    #endif
-#else
-	#error "Unsupported board: led1 devicetree alias is not defined"
-#endif
- 
 
 struct device *dev;
 
@@ -111,7 +86,7 @@ int8_t initLeds(void) {
     if (ret < 0) {
         return -1;
     }
-//#if DT_HAS_NODE(LED1_NODE)
+
     dev = device_get_binding(LED1_DEV);
     if (dev == NULL) {
         return -1;
@@ -120,7 +95,6 @@ int8_t initLeds(void) {
     if (ret < 0) {
         return -1;
     }
-//#endif
     return 0;
 }
 
@@ -133,7 +107,6 @@ int8_t SetLed(uint8_t Led_Num, uint8_t Led_State) {
             }
             gpio_pin_set(dev, LED0_PIN, (int)Led_State);
             break;
-//#if DT_HAS_NODE(LED1_NODE)
         case 1:
             dev = device_get_binding(LED1_DEV);
             if (dev == NULL) {
@@ -141,7 +114,6 @@ int8_t SetLed(uint8_t Led_Num, uint8_t Led_State) {
             }
             gpio_pin_set(dev, LED1_PIN, (int)Led_State);
             break;
-//#endif
 		default:
 			return -1;
     }
