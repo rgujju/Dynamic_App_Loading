@@ -47,7 +47,7 @@ Gained a lot of knowledge from this project.
 
 ## Usage
 This example is for the STM32F429i DISC1 board. But should be [portable](#Porting) to any other mcu.  
-#### 1 Build userlib.a. This is a static library aka archive. The app will be linked to this archive.  
+#### 1 Build libsys_module.a. This is a static library aka archive. The app will be linked to this archive.  
 ``mkdir -p build/userlib``  
 ``cd build/userlib``  
 ``cmake ../.. -DBOARD=stm32f429i_disc1 -DUSERLIB=1``  
