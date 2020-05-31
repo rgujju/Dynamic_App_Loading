@@ -29,10 +29,10 @@ can be changed without needing to rebuild the app.
 The app is compiled as a Position independent Code. 
 The following flags are used:``-fpic -msingle-pic-base -mpic-register=r9 -mno-pic-data-is-text-relative -mlong-calls``. 
 This creates an executable which can be run from any memory location given that the GOT address is in the register **R9**.
-This value is given as a parameter while calling the app, so this gets placed in r0. 
-The ``AppStart`` function defined in **app_startup.s** is used to copy the value from r0 to r9. This is the first instruction that
-gets executed when the app is started. Followed by the ``main`` function defined in app. This sequence is defined using the app
-linker script **app_base.ld**.  
+This value is given as a parameter while calling the app, so this gets placed in **R0**. 
+The ``AppStart`` function defined in **app_startup.s** is used to copy the value from **R0** to **R9**. This function contains the 
+first instruction that gets executed when the app is started. Followed by the ``main`` function defined in app. This sequence is 
+defined using the app linker script **app_base.ld**.  
 gcc generates the executable in elf which contains a lot of information and is quite large for a mcu. So this elf file is 
 converted into [TINF](https://github.com/rgujju/STM32_Dynamic_Apps/tree/master/elf2tinf), which can be easily loaded onto a mcu.  
 
@@ -40,55 +40,54 @@ The app invokes syscalls using the pointer ``sys_struct sys``. The actual addres
 is loaded. When the app invokes a syscall as follows ``sys->SetLed(led_num, led_status);`` the execution flow jumps into the actual
 location of the ``SetLed`` function which was defined in the kernel.
 
-The current example app in **apps/blinky** turns on the green LED while the kernel turns on the red LED on the STM32F429 DISC1 board.
+The current example app in **apps/blinky** turns on the green LED while the kernel turns on the red LED on the STM32F429i-DISC1 board.
 
 To learn more about GOT and PIC refer the [Acknowledgements](#Acknowledgements), they do a much better job of explaining the concepts.
 
 #### Why did I do this?
-Mainly to learn about the GOT, PIC, memory layout of mcu, and a lot more. 
+Mainly to learn about the GOT, PIC, memory layout of mcu, elf format, and a lot more. 
 Gained a lot of knowledge from this project.
 
 ## Usage
-This example is for the STM32F429 DISC1 board. But should be [portable](#Porting) to any other mcu.  
+This example is for the STM32F429i DISC1 board. But should be [portable](#Porting) to any other mcu.  
 #### 1 Build userlib.a. This is a static library aka archive. The app will be linked to this archive.  
 ``mkdir -p build/userlib``  
 ``cd build/userlib``  
-``cmake ../.. -DTARGET_GROUP=userlib -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=../../cross.cmake``  
-``make``  
-A folder called **lib** will be created. This folder will contain everything required to build the app.  
-It contains the header files and the userlib.a archive.   
+``cmake ../.. -DBOARD=stm32f429i_disc1 -DUSERLIB=1``  
+``make userlib``  
+A folder called **userlib** will be created. This folder will contain everything required to build the app.  
+It contains the header and archive files.   
 Copy this folder to the apps folder.  
-``cp -R lib ../../apps/``  
+``cp -R userlib ../../apps/``  
 
 #### 2 Build app. A example app called blinky is provided.  
-This app turn on LED1. There is some extra code in the example to purposely populate the data and bss sections  
+This app turns on LED1. There is some extra code in the example to purposely populate the data and bss sections  
 And also to verify if the GOT is copied properly. ie global variable access.  
-``cd apps``  
+``cd apps/blinky``  
 ``mkdir build/``  
 ``cd build``  
-``cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=../../cross.cmake``  
+``cmake .. -DCMAKE_TOOLCHAIN_FILE=../../cross.cmake``  
 ``make``  
-This should have created **blinky.elf** file. This file now needs to be converted into TINF.
+This will create **blinky.elf** file. This file now needs to be converted into TINF.
 
 #### 3 Create TINF of the app
 ``python3 ../../elf2tinf/elf2tinf.py --major 1 --minor 0 blinky.elf blinky``  
-This should generate 2 files, the **blinky.tinf** and **blinky_tinf.h**   
+This will generate 2 files, the **blinky.tinf** and **blinky_tinf.h**   
 **blink.tinf** is in a binary format which can be loaded over uart, ble, usb, etc.  
-**blinky_tinf.h** is the same binary data in the form of a header file, so I can test it easily, 
-without implementing the actual transfer of the binary to the mcu.  
+**blinky_tinf.h** is the same binary data in the form of a header file, so the app can be tested easily, by
+compiling into the kernel, without implementing the actual transfer of the binary to the mcu.  
 More details about this tool is in the README.md in folder elf2tinf  
 
 #### 4 Build the kernel
 ``mkdir -p build/debug``  
 ``cd build/debug``  
 Build the kernel, this is the code that will actually load the app and run it  
-``cmake ../.. -DTARGET_GROUP=kernel -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=../../cross.cmake``  
+``cmake ../.. -DBOARD=stm32f429i_disc1``  
 ``make``  
 This will generate the **main.elf** file which needs to be loaded onto the board.
 
 #### 5 Load main.elf to hardware
-This can vary depending on your method.  
-If you use gdb then simply, with something like openocd already running in the background then simply  
+This can vary depending on your method. but if zephyr flash method works for you then simple  
 ``make flash``  
 
 
@@ -100,11 +99,7 @@ Online docs: https://rgujju.github.io/STM32_Dynamic_Apps/html/index.html
 
 ## Porting
 - This project uses the STM32F429 mcu but should be portable to any mcu.
-- Replace **components/STM32F4xx_HAL_Driver** and **include/stm32f4xx_hal_conf.h** with the HAL of your mcu.
-- Replace **include/STM32F4xx** with the vendor files for your mcu. These files are basically the system, startup and header files of your mcu.
-- The above 2 folders are provided by the vendor. In case of STM32, it is possible to use STM32CubeMX to generate them.
-- Change *MCU Setup*, *HAL Setup* to match your mcu in the **CMakeLists.txt** file.
-- Linker script **linker.ld** needs to be changed according to your mcu memory.
+- Zephyr makes porting extremely easy. Simply change the ``-DBOARD`` param given to cmake to match your board
 
 
 ## Acknowledgements
