@@ -1,6 +1,3 @@
-
-- APP_SDK_ROOT
-
 ### STM32 Dynamic Linking
   <p align="center">
     Minimal example of dynamic apps.
