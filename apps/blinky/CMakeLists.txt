@@ -177,12 +177,12 @@ add_executable(${APP_NAME}.elf
 target_include_directories(${APP_NAME}.elf
     PUBLIC
     ${CMAKE_CURRENT_LIST_DIR}
-    ${APP_SDK_ROOT}/lib
+    ${APP_SDK_ROOT}/userlib
     )
 
 target_link_libraries(${APP_NAME}.elf
     PRIVATE
-    ${APP_SDK_ROOT}/lib/libsys_module.a
+    ${APP_SDK_ROOT}/userlib/libsys_module.a
     )
 
 if(APP_COMPILE_FLAGS STREQUAL " ")

@@ -50,20 +50,6 @@
 #define DEFAULT_STACK_SIZE 200
 struct k_thread app_thread; //TODO: Dynamically allocate thread struct
 
-
-//RGREMOVE
-void blinky(){
-	while (1) {
-		sys.SetLed(1, LED_ON);
-		k_msleep(1000);
-        sys.SetLed(1, LED_OFF);
-        k_msleep(1000);
-	}
-}
-struct k_thread blinky_thread;
-k_thread_stack_t blinky_stack[DEFAULT_STACK_SIZE];
-
-
 int8_t LoadApp(const uint8_t* tinf_img) {
     tinf_t* tinf = (tinf_t*)tinf_img;
     uint32_t dummy_sys_addr = DUMMY_SYS_ADDR;
@@ -81,7 +67,7 @@ int8_t LoadApp(const uint8_t* tinf_img) {
         //DBUG("App GOT entries: %ld", tinf->got_entries);
         // Allocate memory for data and bss section of the app on the heap
         uint32_t app_data_size = tinf->data_size+tinf->got_entries+tinf->bss_size;
-        // TODO: Add the size of the stack actually required by the app, currently hardcoded to DEFAULT_STACK_SIZE words, change in the xTaskCreate API also
+        // TODO: Add the size of the stack actually required by the app, currently hardcoded to DEFAULT_STACK_SIZE words, change in the task create API also
         //DBUG("Allocating app memory of %ld bytes",app_data_size*4);
         uint32_t* app_data_base = k_malloc((app_data_size+DEFAULT_STACK_SIZE)*4);
         if(app_data_base == NULL) {
@@ -98,7 +84,7 @@ int8_t LoadApp(const uint8_t* tinf_img) {
         uint32_t* app_got_base = app_data_base + tinf->data_size;
         //DBUG("Application stack: 0x%08X", app_data_base);
         // Layout in RAM:
-        // low memory (0x200014a0)                                  high memory (0x200014cc)
+        // low memory (eg: 0x200014a0)                          high memory (eg: 0x200014cc)
         // |<--------------------- app_data_size ---------------------->|
         // |<-- tinf->data_size -->|<-- got_entries -->|<-- bss_size -->|<-- stack_size -->|
         // +-----------------------+-------------------+----------------+------------------+
@@ -167,20 +153,10 @@ int8_t LoadApp(const uint8_t* tinf_img) {
         
         //app_main(app_got_base);
         
-        // Create RTOS task
-        //xHandle = xTaskCreateStatic(
-        //              app_main,       		/* Function that implements the task. */
-        //              (const char *)tinf->app_name,		/* Text name for the task. */
-        //              DEFAULT_STACK_SIZE,		/* Number of indexes in the xStack array. */
-        //              app_got_base,    				/* Parameter passed into the task. */
-        //              tskIDLE_PRIORITY,		/* Priority at which the task is created. */
-        //              app_stack_base,          	/* Array to use as the task's stack. */
-        //              &xTaskBuffer);  		/* Variable to hold the task's data structure. */
-        
         k_thread_create(&app_thread,
                         (k_thread_stack_t*) app_stack_base,
                         DEFAULT_STACK_SIZE,
-                        app_main,
+                        (k_thread_entry_t)app_main,
                         app_got_base, NULL, NULL,
                         3, 0, K_NO_WAIT);
 /*
