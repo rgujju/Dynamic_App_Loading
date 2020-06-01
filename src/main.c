@@ -37,24 +37,48 @@
 #include <drivers/gpio.h>
 
 #include "utilities.h"
-#include "sys_module/syscall.h"
-#include "app_loader/app_loader.h"
+#include "sys_module/led.h"
+//#include "app_loader/app_loader.h"
 
 // Add the app
 #include "blinky_tinf.h"
+
+
+
+void blinky(){
+	while (1) {
+		SetLed(LED1, LED_ON);
+		k_msleep(1000);
+        SetLed(LED1, LED_OFF);
+        k_msleep(1000);
+	}
+}
+struct k_thread blinky_thread;
+k_thread_stack_t blinky_stack[4096];
+
+
 
 int main ( void ) {
 
 	initLeds();
     // Load the app defined in blinky_tinf.h
-    if(LoadApp(app)<0){
-		while(1){
-		}
-	}
+    //if(LoadApp(app)<0){
+	//	while(1){
+	//	}
+	//}
 
-    uint8_t led_ret = sys.SetLed(0, LED_ON);
-	DBUG("Return value of SetLed = %d", led_ret);
     
+    uint8_t led_ret = SetLed(LED0, LED_ON);
+	DBUG("Return value of SetLed = %d", led_ret);
+
+        k_thread_create(&blinky_thread, 
+                    blinky_stack, 
+                    sizeof(blinky_stack), 
+                    blinky, 
+                    NULL, NULL, NULL, 
+                    3, K_USER, K_NO_WAIT);
+
+
     //while (1) {
     //}
     return 0;

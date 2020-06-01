@@ -31,8 +31,6 @@
 */
 
 
-#ifdef RKERNEL
-
 #include <zephyr.h>
 #include <device.h>
 #include <devicetree.h>
@@ -86,7 +84,6 @@ int8_t initLeds(void) {
     if (ret < 0) {
         return -1;
     }
-
     dev = device_get_binding(LED1_DEV);
     if (dev == NULL) {
         return -1;
@@ -98,7 +95,7 @@ int8_t initLeds(void) {
     return 0;
 }
 
-int8_t SetLed(uint8_t Led_Num, uint8_t Led_State) {
+int8_t z_impl_SetLed(uint8_t Led_Num, uint8_t Led_State) {
     switch(Led_Num) {
         case 0:
             dev = device_get_binding(LED0_DEV);
@@ -114,10 +111,15 @@ int8_t SetLed(uint8_t Led_Num, uint8_t Led_State) {
             }
             gpio_pin_set(dev, LED1_PIN, (int)Led_State);
             break;
-		default:
-			return -1;
+        default:
+            return -1;
     }
     return 0;
 }
 
-#endif /* RKERNEL */
+static int8_t z_vrfy_SetLed(uint8_t Led_Num, uint8_t Led_State){
+    
+    return z_impl_SetLed(Led_Num, Led_State);
+    
+}
+#include <syscalls/SetLed_mrsh.c>

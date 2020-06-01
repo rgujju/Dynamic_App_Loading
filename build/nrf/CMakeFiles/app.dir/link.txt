@@ -1,0 +1,2 @@
+ccache /home/rgujju/zephyr-sdk/arm-zephyr-eabi/bin/arm-zephyr-eabi-ar qc app/libapp.a  CMakeFiles/app.dir/modules/sys_module/led.c.obj CMakeFiles/app.dir/modules/sys_module/syscall.c.obj CMakeFiles/app.dir/src/main.c.obj CMakeFiles/app.dir/src/utilities.c.obj
+ccache /home/rgujju/zephyr-sdk/arm-zephyr-eabi/bin/arm-zephyr-eabi-ranlib app/libapp.a

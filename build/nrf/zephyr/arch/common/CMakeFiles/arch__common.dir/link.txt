@@ -1,0 +1,2 @@
+ccache /home/rgujju/zephyr-sdk/arm-zephyr-eabi/bin/arm-zephyr-eabi-ar qc libarch__common.a  CMakeFiles/arch__common.dir/isr_tables.c.obj CMakeFiles/arch__common.dir/sw_isr_common.c.obj
+ccache /home/rgujju/zephyr-sdk/arm-zephyr-eabi/bin/arm-zephyr-eabi-ranlib libarch__common.a

@@ -30,32 +30,3 @@
  * SOFTWARE.
 */
 
-
-#pragma once
-
-#include "sys_module/led.h"
-
-/**
-    @brief  This struct contains APIs for calling system functions
-            It is basically a jump table. 
-            Depending on weather the KERNEL is built or the libs for the app,
-            different sys_struct definitions are compiled.
-            For Kernel:
-                The complete struct with each member is compiled
-            For userlib for the app:
-                Only a 'const sys_struct* sys' pointer is defined. The address
-                of this pointer is made to point to the actual sys_struct in the
-                kernel at load time in the LoadApp API
-*/
-typedef struct {
-    int8_t (*SetLed)(uint8_t Led_Num, uint8_t Led_State);
-}sys_struct;
-
-#define DUMMY_SYS_ADDR 0xA5A5A5A5
-
-#ifdef RKERNEL
-    extern sys_struct sys;
-#else
-	extern const  sys_struct* sys;
-#endif
-

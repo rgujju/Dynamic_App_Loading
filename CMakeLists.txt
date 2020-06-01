@@ -86,10 +86,10 @@ message(STATUS "[INFO] RKERNEL is: ${RKERNEL}")
 #------------------
 # Modules Setup
 #------------------
-list(APPEND ZEPHYR_EXTRA_MODULES
-    ${CMAKE_CURRENT_SOURCE_DIR}/modules/sys_module
-    ${CMAKE_CURRENT_SOURCE_DIR}/modules/app_loader
-    )
+#list(APPEND ZEPHYR_EXTRA_MODULES
+    #${CMAKE_CURRENT_SOURCE_DIR}/modules/sys_module
+    #${CMAKE_CURRENT_SOURCE_DIR}/modules/app_loader
+    #)
 
 #-------------------
 # Common macros for kernel and its modules
@@ -136,10 +136,13 @@ mark_as_advanced(VERSION_MAJOR VERSION_MINOR VERSION_PATCH)
 ######################################################################
 file(GLOB MAIN_SRC
     "src/*.c"
+    #"modules/app_loader/*.c"
+    "modules/sys_module/*.c"
     )
 target_include_directories(app
     PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+    modules/
     )
 target_compile_definitions(app
     PUBLIC

@@ -1,0 +1,2 @@
+ccache /home/rgujju/zephyr-sdk/arm-zephyr-eabi/bin/arm-zephyr-eabi-ar qc liboutput_lib.a  CMakeFiles/output_lib.dir/kobject_hash.c.obj
+ccache /home/rgujju/zephyr-sdk/arm-zephyr-eabi/bin/arm-zephyr-eabi-ranlib liboutput_lib.a

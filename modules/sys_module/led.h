@@ -55,7 +55,9 @@
  *  @retval 0 
  *
 */
-int8_t SetLed(uint8_t Led_Num, uint8_t Led_State);
+__syscall int8_t SetLed(uint8_t Led_Num, uint8_t Led_State);
 
 
 int8_t initLeds(void);
+
+#include <syscalls/led.h>

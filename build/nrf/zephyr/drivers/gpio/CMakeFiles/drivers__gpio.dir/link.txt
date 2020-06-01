@@ -1,0 +1,2 @@
+ccache /home/rgujju/zephyr-sdk/arm-zephyr-eabi/bin/arm-zephyr-eabi-ar qc libdrivers__gpio.a  CMakeFiles/drivers__gpio.dir/gpio_nrfx.c.obj CMakeFiles/drivers__gpio.dir/gpio_handlers.c.obj
+ccache /home/rgujju/zephyr-sdk/arm-zephyr-eabi/bin/arm-zephyr-eabi-ranlib libdrivers__gpio.a

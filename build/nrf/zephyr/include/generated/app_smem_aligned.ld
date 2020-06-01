@@ -1,0 +1,9 @@
+
+	SECTION_PROLOGUE(_APP_SMEM_SECTION_NAME,,)
+	{
+		APP_SHARED_ALIGN;
+		_app_smem_start = .;
+
+		APP_SHARED_ALIGN;
+		_app_smem_end = .;
+	} GROUP_DATA_LINK_IN(RAMABLE_REGION, ROMABLE_REGION)

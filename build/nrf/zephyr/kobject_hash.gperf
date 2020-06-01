@@ -1,0 +1,64 @@
+%compare-lengths
+%define lookup-function-name z_object_lookup
+%language=ANSI-C
+%global-table
+%struct-type
+%{
+#include <kernel.h>
+#include <toolchain.h>
+#include <syscall_handler.h>
+#include <string.h>
+%}
+struct z_object;
+static u8_t Z_GENERIC_SECTION(.priv_stacks.noinit)  __aligned(Z_PRIVILEGE_STACK_ALIGN) priv_stacks[4][CONFIG_PRIVILEGED_STACK_SIZE];
+static struct z_stack_data stack_data[4] = {
+	{ 2048, (u8_t *)(&priv_stacks[0]) },
+	{ 1024, (u8_t *)(&priv_stacks[1]) },
+	{ 1024, (u8_t *)(&priv_stacks[2]) },
+	{ 512, (u8_t *)(&priv_stacks[3]) }
+};
+%%
+"\x00\x00\x00\x20", {}, K_OBJ_TIMER, 0, { .unused = 0 }
+"\x3c\x00\x00\x20", {}, K_OBJ_THREAD, 0, { .thread_id = 0 }
+"\xe0\x00\x00\x20", {}, K_OBJ_MEM_SLAB, 0, { .unused = 0 }
+"\xfc\x00\x00\x20", {}, K_OBJ_THREAD, 0, { .thread_id = 1 }
+"\x90\x01\x00\x20", {}, K_OBJ_MEM_SLAB, 0, { .unused = 0 }
+"\xe8\x02\x00\x20", {}, K_OBJ_THREAD, 0, { .thread_id = 3 }
+"\x78\x03\x00\x20", {}, K_OBJ_THREAD, 0, { .thread_id = 2 }
+"\x00\x40\x00\x20", {}, K_OBJ_THREAD_STACK_ELEMENT, 0, { .stack_data = &stack_data[0] }
+"\x00\x48\x00\x20", {}, K_OBJ_THREAD_STACK_ELEMENT, 0, { .stack_data = &stack_data[1] }
+"\x00\x4c\x00\x20", {}, K_OBJ_THREAD_STACK_ELEMENT, 0, { .stack_data = &stack_data[2] }
+"\x00\x50\x00\x20", {}, K_OBJ_THREAD_STACK_ELEMENT, 0, { .stack_data = &stack_data[3] }
+"\xe4\x56\x00\x20", {}, K_OBJ_DRIVER_UART, 0 | K_OBJ_FLAG_DRIVER, { .unused = 0 }
+"\xf4\x56\x00\x20", {}, K_OBJ_DRIVER_UART, 0 | K_OBJ_FLAG_DRIVER, { .unused = 0 }
+"\x14\x57\x00\x20", {}, K_OBJ_DRIVER_GPIO, 0 | K_OBJ_FLAG_DRIVER, { .unused = 0 }
+"\x24\x57\x00\x20", {}, K_OBJ_DRIVER_GPIO, 0 | K_OBJ_FLAG_DRIVER, { .unused = 0 }
+"\x48\x57\x00\x20", {}, K_OBJ_SEM, 0 | K_OBJ_FLAG_INITIALIZED, { .unused = 0 }
+"\x58\x57\x00\x20", {}, K_OBJ_MUTEX, 0 | K_OBJ_FLAG_INITIALIZED, { .unused = 0 }
+"\x6c\x57\x00\x20", {}, K_OBJ_MUTEX, 0 | K_OBJ_FLAG_INITIALIZED, { .unused = 0 }
+%%
+struct z_object *z_object_gperf_find(void *obj)
+{
+    return z_object_lookup((const char *)obj, sizeof(void *));
+}
+
+void z_object_gperf_wordlist_foreach(_wordlist_cb_func_t func, void *context)
+{
+    int i;
+
+    for (i = MIN_HASH_VALUE; i <= MAX_HASH_VALUE; i++) {
+        if (wordlist[i].name != NULL) {
+            func(&wordlist[i], context);
+        }
+    }
+}
+
+#ifndef CONFIG_DYNAMIC_OBJECTS
+struct z_object *z_object_find(void *obj)
+	ALIAS_OF(z_object_gperf_find);
+
+void z_object_wordlist_foreach(_wordlist_cb_func_t func, void *context)
+	ALIAS_OF(z_object_gperf_wordlist_foreach);
+#endif
+
+Z_GENERIC_SECTION(.kobject_data.data) u8_t _thread_idx_map[2] = { 0xf0,  0xff, };
