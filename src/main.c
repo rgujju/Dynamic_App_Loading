@@ -36,8 +36,7 @@
 #include <devicetree.h>
 #include <drivers/gpio.h>
 
-#include "utilities.h"
-#include "sys_module/led.h"
+#include "led.h"
 
 void blinky() {
     while (1) {
@@ -51,7 +50,6 @@ struct k_thread blinky_thread;
 k_thread_stack_t blinky_stack[4096];
 
 int main ( void ) {
-    initLeds();
     SetLed(LED0, LED_ON);
     k_thread_create(&blinky_thread,
                     blinky_stack,

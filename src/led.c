@@ -1,7 +1,7 @@
 /**
  ******************************************************************************
- * @file    syscall.h
- * @brief   Contains APIs for system calls from the APP
+ * @file    led.c
+ * @brief   Contains APIs for setting state of the LED
  ******************************************************************************
  * @attention
  *
@@ -30,3 +30,22 @@
  * SOFTWARE.
 */
 
+
+#include <zephyr.h>
+#include <device.h>
+#include <devicetree.h>
+#include <drivers/gpio.h>
+
+#include "led.h"
+
+int8_t z_impl_SetLed(uint8_t Led_Num, uint8_t Led_State) {
+	printk("Setting LED %d to %d\n",Led_Num,Led_State);
+    return 0;
+}
+
+static int8_t z_vrfy_SetLed(uint8_t Led_Num, uint8_t Led_State){
+    
+    return z_impl_SetLed(Led_Num, Led_State);
+    
+}
+#include <syscalls/SetLed_mrsh.c>
