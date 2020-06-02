@@ -1,2 +1,0 @@
-ccache /home/rgujju/zephyr-sdk/arm-zephyr-eabi/bin/arm-zephyr-eabi-ar qc libsoc__arm__common__cortex_m.a  CMakeFiles/soc__arm__common__cortex_m.dir/arm_mpu_regions.c.obj
-ccache /home/rgujju/zephyr-sdk/arm-zephyr-eabi/bin/arm-zephyr-eabi-ranlib libsoc__arm__common__cortex_m.a

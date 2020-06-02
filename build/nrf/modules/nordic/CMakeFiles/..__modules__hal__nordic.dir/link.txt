@@ -1,2 +1,0 @@
-ccache /home/rgujju/zephyr-sdk/arm-zephyr-eabi/bin/arm-zephyr-eabi-ar qc lib..__modules__hal__nordic.a  CMakeFiles/..__modules__hal__nordic.dir/nrfx/mdk/system_nrf52840.c.obj CMakeFiles/..__modules__hal__nordic.dir/nrfx_glue.c.obj
-ccache /home/rgujju/zephyr-sdk/arm-zephyr-eabi/bin/arm-zephyr-eabi-ranlib lib..__modules__hal__nordic.a
