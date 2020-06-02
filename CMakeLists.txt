@@ -158,7 +158,7 @@ target_sources(app
 # @Brief: Generate doxygen documentation
 ######################################################################
 # check if Doxygen is installed
-find_package(Doxygen)
+#find_package(Doxygen)
 if (DOXYGEN_FOUND)
     # set input and output files
     set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile.in)
