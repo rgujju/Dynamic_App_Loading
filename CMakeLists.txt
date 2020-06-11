@@ -72,13 +72,9 @@ set(CMAKE_CXX_FLAGS_RELEASE "-Os -flto " CACHE INTERNAL "C++ Compiler options fo
 set(CMAKE_ASM_FLAGS_RELEASE "" CACHE INTERNAL "ASM Compiler options for release build type")
 set(CMAKE_EXE_LINKER_FLAGS_RELEASE "-flto " CACHE INTERNAL "Linker options for release build type")
 
-# Build the kernel
-
 # Control building kernel or userlib
 if(USERLIB)
-    #set(RKERNEL 0)
-else()
-    set(RKERNEL RKERNEL=1)
+    set(RKERNEL __ZEPHYR_USER__=1 CONFIG_USERLIB=1)
 endif()
 
 message(STATUS "[INFO] RKERNEL is: ${RKERNEL}")
@@ -86,18 +82,21 @@ message(STATUS "[INFO] RKERNEL is: ${RKERNEL}")
 #------------------
 # Modules Setup
 #------------------
-#list(APPEND ZEPHYR_EXTRA_MODULES
-    #${CMAKE_CURRENT_SOURCE_DIR}/modules/sys_module
-    #${CMAKE_CURRENT_SOURCE_DIR}/modules/app_loader
-    #)
+list(APPEND ZEPHYR_EXTRA_MODULES
+    ${CMAKE_CURRENT_SOURCE_DIR}/modules/sys_module
+    ${CMAKE_CURRENT_SOURCE_DIR}/modules/app_loader
+    )
 
 #-------------------
-# Common macros for kernel and its modules
+# Common macros for kerne
 #-------------------
 set(COMPILE_DEFS
     ${RKERNEL}
     )
 
+#-------------------
+# Common macros for modules
+#-------------------
 set(MODULE_COMPILE_DEFS
     ${COMPILE_DEFS}
     )
@@ -132,12 +131,10 @@ mark_as_advanced(VERSION_MAJOR VERSION_MINOR VERSION_PATCH)
 ######################################################################
 # @Target: Zephyr application
 # @Brief: Build the kernel for the project
-#         rwatch kernel is built as zephyr application
+#         kernel is built as zephyr application
 ######################################################################
 file(GLOB MAIN_SRC
     "src/*.c"
-    #"modules/app_loader/*.c"
-    "modules/sys_module/*.c"
     )
 target_include_directories(app
     PUBLIC
@@ -193,14 +190,28 @@ endif (DOXYGEN_FOUND)
 #          will be linked
 ######################################################################
 
-# copy the sys_module lib and header files to lib folder for easy distribution
 add_custom_target(userlib DEPENDS sys_module)
+set(out_disassembly_cmd    "")
+set(out_disassembly_byprod "")
+bintools_objdump(
+  RESULT_CMD_LIST    out_disassembly_cmd
+  RESULT_BYPROD_LIST out_disassembly_byprod
+  "DISASSEMBLE_ALL"
+  FILE_INPUT         userlib/libsys_module.a
+  FILE_OUTPUT        libsys_module.diss
+  )
+
+# Copy the sys_module lib and header files to lib folder for easy distribution
 add_custom_command(TARGET userlib
     COMMAND ${CMAKE_COMMAND} -E make_directory userlib
     COMMAND ${CMAKE_COMMAND} -E copy modules/sys_module/libsys_module.a userlib
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/modules/sys_module/*.h userlib
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/modules/sys_module/*[!_kernel].h userlib
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/include/common.h userlib
+    #COMMAND ${CMAKE_COMMAND} -E touch userlib/toolchain.h
+    COMMAND "sed" "-i" "'s/#include <toolchain.h>//g'" "userlib/*"
+    COMMAND "sed" "-i" "'s/#include <.*_kernel.h>//g'" "userlib/*" #TODO: Remove linux dependency
+    COMMAND ${out_disassembly_cmd}
     )
-
 ######################################################################
 # @Target: clean
 # @Brief:  Add more files to the clean target
@@ -212,6 +223,7 @@ set_property(DIRECTORY PROPERTY ADDITIONAL_MAKE_CLEAN_FILES
     "${CMAKE_CURRENT_BINARY_DIR}/html"
     "${CMAKE_CURRENT_BINARY_DIR}/latex"
     "${CMAKE_CURRENT_BINARY_DIR}/userlib"
+    "${CMAKE_CURRENT_BINARY_DIR}/libsys_module.diss"
     )
 
 

@@ -1,7 +1,7 @@
 /**
  ******************************************************************************
- * @file    syscall.h
- * @brief   Contains APIs for system calls from the APP
+ * @file    led.h
+ * @brief   Contains APIs for setting state of LED
  ******************************************************************************
  * @attention
  *
@@ -30,3 +30,35 @@
  * SOFTWARE.
 */
 
+#ifndef _RATCH_LED_H_
+#define _RATCH_LED_H_
+
+#include <common.h>
+
+/** LED 0 */
+#define LED0 0
+/** LED 1 */
+#define LED1 1
+/** LED_ON state */
+#define LED_ON 1
+/** LED_OFF state */
+#define LED_OFF 0
+
+/** @brief  Change state of LED to on/off
+ * 
+ *  @note   This API is compiled only in the KERNEL, not in the userlib
+ *          To call this API, from the app. use 'SetLed(LED1, LED_ON);'
+ *          it will generate a svc and jump to implementation function
+ *          in the kernel
+ *
+ *  @param  Led_Num Which LED to turn on
+ *
+ *  @param  Led_State Set the state of LED to on (1) or off (0)
+ *
+ *  @retval 0 
+ *
+*/
+__syscall int8_t SetLed(uint8_t Led_Num, uint8_t Led_State);
+
+#include <sys_module/sysled_kernel.h>
+#endif /* _RATCH_LED_H_ */

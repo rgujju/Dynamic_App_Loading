@@ -35,34 +35,3 @@
 #include <stdio.h>
 #include <stdint.h>
 
-/** Enable debug prints */
-#define DBUG_EN 1
-/** Enable information prints */
-#define INFO_EN 1
-/** Enable warning prints */
-#define WARN_EN 1
-/** Enable error prints */
-#define ERRR_EN 1
-
-//#if defined(__x86_64__)
-/** Print as debug output */
-#define DBUG(fmt...) if(DBUG_EN){printk("[DBUG] " fmt); printk("\n");}
-/** Print as information output */
-#define INFO(fmt...) if(INFO_EN){printk("[INFO] " fmt); printk("\n");}
-/** Print as warning output */
-#define WARN(fmt...) if(WARN_EN){printk("[WARN] " fmt); printk("\n");}
-/** Print as error output */
-#define ERRR(fmt...) if(ERRR_EN){printk("[ERRR] " fmt); printk("\n");}
-
-/** Print start part of the debug output. This is used for printing in loops */
-#define DBUG_CUST_S(fmt...) if(DBUG_EN){printk("[DBUG] " fmt);}
-#define DBUG_CUST_C(fmt...) if(DBUG_EN){printk(fmt);}
-#define DBUG_CUST_E(fmt...) if(DBUG_EN){printk(fmt "\n");}
-
-/** Print start part of information output. This is used for printing in loops. */
-#define INFO_CUST_S(fmt...) if(INFO_EN){printk("[INFO] " fmt);}
-#define INFO_CUST_C(fmt...) if(INFO_EN){printk(fmt);}
-#define INFO_CUST_E(fmt...) if(INFO_EN){printk(fmt "\n");}
-//#endif /* __x86_64__ */
-
-uint8_t add(uint8_t a, uint8_t b);

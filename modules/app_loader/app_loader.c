@@ -36,53 +36,77 @@
 #include "string.h" //TODO: Replace with a minimal libc implementation
 #include "stdlib.h" //TODO: Replace with a minimal libc implementation
 #include "app_loader/app_loader.h"
-#include "sys_module/syscall.h"
+
+#include <logging/log.h>
+// TODO: Change Log module debug level from build system
+LOG_MODULE_REGISTER(app_loader, 4);
 
 // TODO Add Tests:
 // 2) Check name length =0,1,15,16,and greater, Check if it is 0s after name length
 // 3) Check little endian/ big endian or whatever
 // 4) malloc fails
-// 5) app loading fails in xtaskCreateStatic
+// 5) app loading fails during task creation
 // 6) tinf->bin should fail
 
+// RGREMOVE
+#define DUMMY_SYS_ADDR 0xA5A5A5A5
+uint32_t sys = 0xdeadbeef;
+//void blinky() {
+//    while (1) {
+//        SetLed(LED0, LED_ON);
+//        k_msleep(1000);
+//        SetLed(LED0, LED_OFF);
+//        k_msleep(1000);
+//    }
+//}
+/////////////
 
-
-#define DEFAULT_STACK_SIZE 200
+#define DEFAULT_STACK_SIZE 1024
+K_THREAD_STACK_DEFINE(app_stack, DEFAULT_STACK_SIZE);
 struct k_thread app_thread; //TODO: Dynamically allocate thread struct
 
 int8_t LoadApp(const uint8_t* tinf_img) {
+
     tinf_t* tinf = (tinf_t*)tinf_img;
-    uint32_t dummy_sys_addr = DUMMY_SYS_ADDR;
     // Check if it is actually an APP
     // Check the magic, ie start of the header contains 'TINF'
-    // and start of the binary part after header contains DUMMY_SYS_ADDR
-    // DUMMY_SYS_ADDR is placed at the start using the application linker script
     uint32_t* data_base = tinf->bin+tinf->text_size;
-    if(memcmp(tinf->magic, "TINF", 4) == 0 && memcmp(data_base, &dummy_sys_addr, 4) == 0) {
+
+    if(memcmp(tinf->magic, "TINF", 4) == 0) {
+
         // Valid TINF Format app
-        DBUG("Loading app: %s %hu.%hu", tinf->app_name, tinf->major_version, tinf->minor_version);
-        //DBUG("App text size: %hu 32 bit word", tinf->text_size);
-        //DBUG("App data size: %hu 32 bit word", tinf->data_size);
-        //DBUG("App bss size: %hu 32 bit word", tinf->bss_size);
-        //DBUG("App GOT entries: %ld", tinf->got_entries);
+        LOG_DBG("Loading app: %s %hu.%hu", tinf->app_name, tinf->major_version, tinf->minor_version);
+        LOG_DBG("App text size: %hu 32 bit word", tinf->text_size);
+        LOG_DBG("App data size: %hu 32 bit word", tinf->data_size);
+        LOG_DBG("App bss size: %hu 32 bit word", tinf->bss_size);
+        LOG_DBG("App GOT entries: %ld", tinf->got_entries);
+
         // Allocate memory for data and bss section of the app on the heap
         uint32_t app_data_size = tinf->data_size+tinf->got_entries+tinf->bss_size;
+
+        LOG_DBG("Allocating app memory of %ld bytes", app_data_size*4);
         // TODO: Add the size of the stack actually required by the app, currently hardcoded to DEFAULT_STACK_SIZE words, change in the task create API also
-        //DBUG("Allocating app memory of %ld bytes",app_data_size*4);
-        uint32_t* app_data_base = k_malloc((app_data_size+DEFAULT_STACK_SIZE)*4);
-        if(app_data_base == NULL) {
-            return APP_OOM;
-        }
+        // TODO: Cannot dynamically allocate thread stack due to limitation in zephyr
+        // Zephyr does not have an aligned allocater
+        //uint32_t* app_data_base = k_malloc((app_data_size+DEFAULT_STACK_SIZE)*4);
+        uint32_t* app_data_base = app_stack;
+        uint32_t app_stack_size = DEFAULT_STACK_SIZE;
+        //if(app_data_base == NULL) {
+        //    return APP_OOM;
+        //}
+
         // app_stack_base is the address of the base of the stack used by
         // the rtos task
         uint32_t* app_stack_base = app_data_base+app_data_size;
+
         // app_got_base is the value which will get loaded to r9
         // This is address of the base of GOT which will actually be used
         // by the app for global data accesses
         // This value is passed as the parameter to the app_main. The app will
         // copy the this value from r0 to r9 register
         uint32_t* app_got_base = app_data_base + tinf->data_size;
-        //DBUG("Application stack: 0x%08X", app_data_base);
+        LOG_DBG("App data base: 0x%08X", app_data_base);
+
         // Layout in RAM:
         // low memory (eg: 0x200014a0)                          high memory (eg: 0x200014cc)
         // |<--------------------- app_data_size ---------------------->|
@@ -90,34 +114,42 @@ int8_t LoadApp(const uint8_t* tinf_img) {
         // +-----------------------+-------------------+----------------+------------------+
         // | .data                 | .got              | .bss           | APP STACK        |
         // +-----------------------+-------------------+----------------+------------------+
-        // ^                       ^                                    ^
-        // app_data_base           app_got_base                         app_stack_base
+        // ^                       ^                                    ^                  Λ
+        // app_data_base           app_got_base                         app_stack_base     |
+        //                                                  stack starts pushing from here |
+        // TODO: There is no APP STACK overflow protection right now since we cannot detect
+        //       when the stack will start overwriting the bss section
+
         if(app_data_size != 0) {
             if(tinf->data_size > 0) {
                 // Copy data section from flash to the RAM we allocated above
                 memcpy(app_data_base, data_base, (tinf->data_size*4));
-                //DBUG("Data at data section (flash): 0x%08X", *(uint32_t*)(tinf->bin+(tinf->text_size)));
-                //DBUG("Data at data section (RAM): 0x%08X", *(uint32_t*)(app_data_base));
+                LOG_DBG("Data at data section (flash): 0x%08X", *(uint32_t*)(tinf->bin+(tinf->text_size)));
+                LOG_DBG("Data at data section (RAM): 0x%08X", *(uint32_t*)(app_data_base));
+
                 // Replace the sys_struct address to the one on the mcu
                 // The start of the app_data_base will point to start of the data section
                 // This is where the sys_struct address was kept by the linker script
-                *app_data_base = (uintptr_t)&sys;
-                //DBUG("App sys_struct: 0x%08X", *app_data_base);
+                //*app_data_base = (uintptr_t)&sys;
+                //LOG_DBG("App sys_struct: 0x%08X", *app_data_base);
             }
+
+            // If there is any global data of the app then copy to RAM
             if(tinf->got_entries > 0) {
                 // Copy the GOT from flash to RAM
                 // app_got_base is the base of the GOT in the RAM
                 // this is where GOT will be copied to
-                //DBUG("GOT in app stack: %p", app_got_base);
+                LOG_DBG("GOT in app stack: %p", app_got_base);
+
                 // got_entries_base is the base of the GOT in the flash
                 // tinf->got_entries number of entries from this location
                 // needs to be copied into RAM
                 uint32_t* got_entries_base = data_base + tinf->data_size;
+
                 // While copying add the base address (app_data_base) in RAM to each element of the GOT
                 // TODO: Add more explaination about this
                 // Need to subtract the data_offset to get the location with respect to 0
                 uint32_t data_offset = 0x10000000;
-                //DBUG("Data offset: 0x%08X",data_offset);
                 for(uint8_t i = 0; i < tinf->got_entries; i++) {
                     if(*(got_entries_base+i) >= data_offset) {
                         // If the value is greater than data_offset then it is in the RAM section.
@@ -130,44 +162,39 @@ int8_t LoadApp(const uint8_t* tinf_img) {
                     }
                 }
             }
+
+            // If there is any bss in the app then set that much space to 0
             if(tinf->bss_size > 0) {
                 // Set BSS section to 0
                 memset(app_data_base+(tinf->data_size+tinf->got_entries), 0, tinf->bss_size*4);
-                //DBUG("Data at bss section (RAM): 0x%08X", *(uint32_t*)(app_data_base+(tinf->data_size)));
+                LOG_DBG("Data at bss section (RAM): 0x%08X", *(uint32_t*)(app_data_base+(tinf->data_size)));
             }
             //uint32_t* app_stack_got = app_data_base + tinf->data_size;
             //uint32_t* got_entries_base = data_base + tinf->data_size;
             //for(uint8_t i = 0; i < tinf->got_entries; i++) {
-            //DBUG("app_stack_got: 0x%08X: 0x%08X: 0x%08X and flash: 0x%08X", app_stack_got, *app_stack_got, *((uint32_t*)((uintptr_t)(*app_stack_got))), *got_entries_base++);
-            //DBUG("app_stack_got: 0x%08X: 0x%08X and flash: 0x%08X", app_stack_got, *app_stack_got, *got_entries_base++);
+            //LOG_DBG("app_stack_got: 0x%08X: 0x%08X: 0x%08X and flash: 0x%08X", app_stack_got, *app_stack_got, *((uint32_t*)((uintptr_t)(*app_stack_got))), *got_entries_base++);
+            //LOG_DBG("app_stack_got: 0x%08X: 0x%08X and flash: 0x%08X", app_stack_got, *app_stack_got, *got_entries_base++);
             //app_stack_got++;
             //}
         }
-        //TaskFunction_t app_main = (TaskFunction_t)(((uintptr_t)(tinf->bin))|1); /* OR'ed with 1 to set the thumb bit */
+        
+        // OR'ed with 1 to set the thumb bit, TODO: Check if this is handled internally by zephyr
         int (*app_main)() = (void*)(((uintptr_t)(tinf->bin))|1);
-        //DBUG("App entry point: 0x%08X", app_main);
-        //TaskFunction_t app_main_orig = (TaskFunction_t)(tinf->bin);
-        //DBUG("Check entry point: 0x%08X Data: 0x%08lX", (uint32_t*)app_main_orig, *(uint32_t*)app_main_orig);
+        LOG_DBG("App entry point: 0x%08X", app_main);
         // TODO: The following line gives segfault for some reason
-        //DBUG("Data at app entry point: 0x%08X", *((uint32_t*)(((uintptr_t)app_main)&0xFFFFFFFE)));
-        
+        //LOG_DBG("Data at app entry point: 0x%08X", *((uint32_t*)(((uintptr_t)app_main)&0xFFFFFFFE)));
+
         //app_main(app_got_base);
-        
+
         k_thread_create(&app_thread,
-                        (k_thread_stack_t*) app_stack_base,
-                        DEFAULT_STACK_SIZE,
+                        //(k_thread_stack_t*) app_stack_base,
+                        app_stack,
+                        app_stack_size,
                         (k_thread_entry_t)app_main,
+                        //blinky,
                         app_got_base, NULL, NULL,
-                        3, 0, K_NO_WAIT);
-/*
-        k_thread_create(&blinky_thread, 
-                    blinky_stack, 
-                    sizeof(blinky_stack), 
-                    blinky, 
-                    NULL, NULL, NULL, 
-                    3, 0, K_NO_WAIT);
-*/
-        
+                        3, K_USER, K_NO_WAIT);
+
         return 0;
     } else {
         // If check fails then it probably is not an app or it is corrupted

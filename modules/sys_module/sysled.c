@@ -31,13 +31,18 @@
 */
 
 
-#include <zephyr.h>
+#include "sys_module/sysled.h"
+
+#ifndef CONFIG_USERLIB
+
 #include <device.h>
 #include <devicetree.h>
 #include <drivers/gpio.h>
+#include <logging/log.h>
+// TODO: Change Log module debug level from build system
+LOG_MODULE_REGISTER(led, 4);
 
 #include "utilities.h"
-#include "led.h"
 
 #define LED0_NODE DT_ALIAS(led0)
 #if DT_NODE_HAS_STATUS(LED0_NODE, okay)
@@ -71,7 +76,7 @@
 #endif
 
 
-struct device *dev;
+static struct device *dev;
 
 int8_t initLeds(void) {
     // Initialize GPIO and LED
@@ -114,6 +119,7 @@ int8_t z_impl_SetLed(uint8_t Led_Num, uint8_t Led_State) {
         default:
             return -1;
     }
+    LOG_DBG("Setting LED%d to o%s",Led_Num, Led_State ? "n" : "ff");
     return 0;
 }
 
@@ -123,3 +129,5 @@ static int8_t z_vrfy_SetLed(uint8_t Led_Num, uint8_t Led_State){
     
 }
 #include <syscalls/SetLed_mrsh.c>
+
+#endif /* CONFIG_USERLIB */
