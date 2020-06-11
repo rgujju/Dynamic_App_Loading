@@ -32,7 +32,7 @@ defined using the app linker script **app_base.ld**.
 gcc generates the executable in elf which contains a lot of information and is quite large for a mcu. So this elf file is 
 converted into [TINF](https://github.com/rgujju/Dynamic_App_Loading/tree/master/elf2tinf), which can be easily loaded onto a mcu.  
 
-The current example app blinky in [apps](https://github.com/rgujju/Dynamic_Apps) turns on the green LED while the kernel turns on the red LED on the STM32F429i-DISC1 board.
+The current example app blinky in **apps/blinky** turns on the green LED while the kernel turns on the red LED on the STM32F429i-DISC1 board.
 But should be able to port to any arm cortex m board.
 
 To learn more about GOT and PIC refer the [Acknowledgements](#Acknowledgements), they do a much better job of explaining the concepts.
@@ -44,19 +44,20 @@ Gained a lot of knowledge from this project.
 ## Usage
 This example is for the STM32F429i DISC1 board. But should be [portable](#Porting) to any other mcu.  
 #### 1 Build libsys_module.a. This is a static library aka archive. The app will be linked to this archive.  
+``cd kernel``
 ``mkdir build``  
 ``cd build``  
 ``cmake .. -DBOARD=stm32f429i_disc1 -DUSERLIB=1``  
 ``make userlib``  
 A folder called **userlib** will be created. This folder will contain everything required to build the app.  
 It contains the header and archive files.   
-Copy this folder to the apps folder. The apps repo is at [Dynamic_Apps](https://github.com/rgujju/Dynamic_Apps)  
-``cp -R userlib Dynamic_Apps/``  
+Copy this folder to the apps folder.  
+``cp -R userlib ../../apps/``  
 
 #### 2 Build app. A example app called blinky is provided.  
 This app turns on LED1. There is some extra code in the example to purposely populate the data and bss sections  
 And also to verify if the GOT is copied properly. ie global variable access.  
-``cd Dynamic_Apps/blinky``  
+``cd apps/blinky``  
 ``mkdir build/``  
 ``cd build``  
 ``cmake ..``  
@@ -64,15 +65,17 @@ And also to verify if the GOT is copied properly. ie global variable access.
 This will create **blinky.elf** file. This file now needs to be converted into TINF.
 
 #### 3 Create TINF of the app
-``python3 <path>/elf2tinf/elf2tinf.py --major 1 --minor 0 <path>/blinky.elf blinky``  
+``python3 ../../../elf2tinf/elf2tinf.py --major 1 --minor 0 blinky.elf blinky``  
 This will generate 2 files, the **blinky.tinf** and **blinky_tinf.h**   
 **blink.tinf** is in a binary format which can be loaded over uart, ble, usb, etc.  
 **blinky_tinf.h** is the same binary data in the form of a header file, so the app can be tested easily, by
 compiling into the kernel, without implementing the actual transfer of the binary to the mcu.  
 More details about this tool is in the README.md in folder elf2tinf  
+Copy the **blinky_tinf** file to the kernel include folder.  
+``cp -rf blinky_tinf.h ../../../kernel/include``  
 
 #### 4 Build the kernel
-``cd build``  
+``cd kernel/build``  
 Build the kernel, this is the code that will actually load the app and run it  
 ``cmake .. -DBOARD=stm32f429i_disc1 -DUSERLIB=0``  
 ``make clean`` Need to clean the build files of the userlib.
@@ -93,7 +96,7 @@ Online docs: https://rgujju.github.io/Dynamic_App_Loading/html/index.html
 ## Porting
 - This project uses the STM32F429 mcu but should be portable to any mcu.
 - Zephyr makes porting extremely easy. Simply change the ``-DBOARD`` param given to cmake to match your board
-- Modify the **CMakeLists.txt** in the app in [Dynamic_Apps](https://github.com/rgujju/Dynamic_Apps). mainly the **MCU** and **MCU_SPEC**
+- Modify the **apps/blinky/CMakeLists.txt** mainly the **MCU** and **MCU_SPEC**
 - To port to other architecture need to modify how the GOT base address is passed to the app
 
 

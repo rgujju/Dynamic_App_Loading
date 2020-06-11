@@ -151,40 +151,6 @@ target_sources(app
     )
 
 ######################################################################
-# @Target: doc
-# @Brief: Generate doxygen documentation
-######################################################################
-# check if Doxygen is installed
-find_package(Doxygen)
-if (DOXYGEN_FOUND)
-    # set input and output files
-    set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile.in)
-    set(DOXYGEN_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
-
-    # exclude folders while making documentation
-    # should be separated by spaces
-    set(DOXYGEN_EXCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/components/* ${CMAKE_CURRENT_SOURCE_DIR}/build/* ${CMAKE_CURRENT_SOURCE_DIR}/${MCU_DIR}* ${CMAKE_CURRENT_SOURCE_DIR}/apps/lib")
-
-    # set mainpage in doxygen
-    set(DOXYGEN_MAIN_PAGE "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
-
-    # request to configure the file
-    configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
-
-    # Generate doxygen documentation
-    # And copy to docs folder on project root so github pages can display docs
-    add_custom_target(docs
-        COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
-        COMMAND ${CMAKE_COMMAND} -E copy_directory html ${PROJECT_SOURCE_DIR}/docs/html
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-        COMMENT "Generating API documentation with Doxygen"
-        VERBATIM
-        )
-else (DOXYGEN_FOUND)
-    message("Doxygen need to be installed to generate the doxygen documentation")
-endif (DOXYGEN_FOUND)
-
-######################################################################
 # @Target: userlib
 # @Brief:  Build the userlib, this is an archive to which the app
 #          will be linked
@@ -212,6 +178,41 @@ add_custom_command(TARGET userlib
     COMMAND "sed" "-i" "'s/#include <.*_kernel.h>//g'" "userlib/*" #TODO: Remove linux dependency
     COMMAND ${out_disassembly_cmd}
     )
+
+######################################################################
+# @Target: doc
+# @Brief: Generate doxygen documentation
+######################################################################
+# check if Doxygen is installed
+find_package(Doxygen)
+if (DOXYGEN_FOUND)
+    # set input and output files
+    set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/../docs/Doxyfile.in)
+    set(DOXYGEN_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
+
+    # exclude folders while making documentation
+    # should be separated by spaces
+    set(DOXYGEN_EXCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/components/* ${CMAKE_CURRENT_SOURCE_DIR}/build/* ${CMAKE_CURRENT_SOURCE_DIR}/${MCU_DIR}* ${CMAKE_CURRENT_SOURCE_DIR}/apps/lib")
+
+    # set mainpage in doxygen
+    set(DOXYGEN_MAIN_PAGE "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
+
+    # request to configure the file
+    configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
+
+    # Generate doxygen documentation
+    # And copy to docs folder on project root so github pages can display docs
+    add_custom_target(docs
+        COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
+        COMMAND ${CMAKE_COMMAND} -E copy_directory html ${PROJECT_SOURCE_DIR}/docs/html
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        COMMENT "Generating API documentation with Doxygen"
+        VERBATIM
+        )
+else (DOXYGEN_FOUND)
+    message("Doxygen need to be installed to generate the doxygen documentation")
+endif (DOXYGEN_FOUND)
+
 ######################################################################
 # @Target: clean
 # @Brief:  Add more files to the clean target
