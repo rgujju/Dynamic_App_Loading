@@ -94,7 +94,7 @@ Online docs: https://rgujju.github.io/Dynamic_App_Loading/html/index.html
 - This project uses the STM32F429 mcu but should be portable to any mcu.
 - Zephyr makes porting extremely easy. Simply change the ``-DBOARD`` param given to cmake to match your board
 - Modify the **CMakeLists.txt** in the app in [Dynamic_Apps](https://github.com/rgujju/Dynamic_Apps). mainly the **MCU** and **MCU_SPEC**
-- To port to other architecture need to modify how the GOT BASE is passed to the app
+- To port to other architecture need to modify how the GOT base address is passed to the app
 
 
 ## Limitations:
@@ -117,7 +117,7 @@ Have a look at the diff [here](https://github.com/rgujju/zephyr/commit/a7be4d5d6
     - ``__ZEPHYR_USER__=1`` is used to compile only the userspace version of the syscall 
     - The modified api definition is formed as follows
 
-```
+```C
 extern int8_t z_impl_some_api(uint8_t a, uint8_t b);
 #ifndef CONFIG_USERLIB
 static inline
@@ -140,7 +140,7 @@ int8_t some_api(uint8_t a, uint8_t b)
   are required in the userlib so a typical module can be compiled as follows
 
 module_name.c
-```
+```C
 #include <zephyr.h>
 #include <device.h>
 #include "<module_name>.h"
@@ -162,7 +162,7 @@ int8_t z_vrfy_some_api(uint8_t a, uint8_t b){
 ```
 
 module_name.h
-```
+```C
 #ifndef CONFIG_USERLIB
 _syscall int8_t some_api(uint8_t a, uint8_t b);
 
