@@ -16,3 +16,4 @@ apps/lib
 *.out
 *cppcheck.xml
 sanity-out*
+*/userlib
