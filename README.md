@@ -1,6 +1,6 @@
 ### Dynamic App Loading
   <p align="center">
-    Minimal example of dynamic apps.
+    Minimal example of dynamic apps for Cortex-M
     <br />
     <a href="https://rgujju.github.io/Dynamic_App_Loading/html/index.html"><strong>Doxygen docs »</strong></a>
     <br />
