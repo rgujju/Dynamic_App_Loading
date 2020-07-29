@@ -1,4 +1,4 @@
-### STM32 Dynamic Linking
+### Dynamic App Loading
   <p align="center">
     Minimal example of dynamic apps.
     <br />
