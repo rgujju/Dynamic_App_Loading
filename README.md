@@ -5,6 +5,7 @@
     <a href="https://rgujju.github.io/Dynamic_App_Loading/html/index.html"><strong>Doxygen docs »</strong></a>
     <br />
   </p>
+Note: Initial implementation using jump tables and FreeRTOS is in [FreeRTOS branch](https://github.com/rgujju/Dynamic_App_Loading/tree/freertos)
 
 ## About The Project
 This is a minimal example of having dynamic apps with syscall functionality. It is divided into 2 parts, the kernel
